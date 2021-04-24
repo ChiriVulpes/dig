@@ -4,7 +4,8 @@
 		"experimentalDecorators": true,
 		"target": "ES2019",
 		"module": "AMD",
-		"outFile": "../js/index.js"
+		"outFile": "../js/index.js",
+		"inlineSourceMap": true
 	},
 	"include": ["**/*"]
 }

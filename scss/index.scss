@@ -1,4 +1,18 @@
 body {
 	background: #000;
+	margin: 0;
+	display: flex;
+	justify-content: center;
+	align-items: center;
+    height: 100vh;
 }
 
+@function floor($num) {
+    @return calc(#{$num} * var(--shf) / var(--shf));
+}
+
+canvas {
+	width: calc(var(--width, auto) * 1px);
+	height: calc(var(--height, auto) * 1px);
+	image-rendering: pixelated;
+}

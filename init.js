@@ -41,7 +41,7 @@
 		const module = {
 			_name: name,
 			_state: ModuleState.Unprocessed,
-			_requirements: reqs.slice(2).map(req => findModuleName(name, req)),
+			_requirements: reqs.slice(2).map(req => req),
 			_initializer: fn,
 		};
 		moduleMap.set(name, module);
@@ -148,40 +148,5 @@
 		}
 
 		return module;
-	}
-
-
-	////////////////////////////////////
-	// Utils
-	//
-
-	/**
-	 * @param {string} name 
-	 * @param {string} requirement 
-	 */
-	function findModuleName (name, requirement) {
-		let root = dirname(name);
-		if (requirement.startsWith("./"))
-			return join(root, requirement.slice(2));
-
-		while (requirement.startsWith("../"))
-			root = dirname(root), requirement = requirement.slice(3);
-
-		return join(root, requirement);
-	}
-
-	/**
-	 * @param {string} name 
-	 */
-	function dirname (name) {
-		const lastIndex = name.lastIndexOf("/");
-		return lastIndex === -1 ? "" : name.slice(0, lastIndex);
-	}
-
-	/**
-	 * @param  {...string} path 
-	 */
-	function join (...path) {
-		return path.filter(p => p).join("/");
 	}
 })();
