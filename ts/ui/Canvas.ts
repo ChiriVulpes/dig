@@ -3,6 +3,14 @@ export default class Canvas {
 	private readonly element = document.createElement("canvas");
 	public readonly context = this.element.getContext("2d")!;
 
+	public get width () {
+		return this.element.width;
+	}
+
+	public get height () {
+		return this.element.height;
+	}
+
 	public constructor () {
 	}
 
@@ -46,5 +54,9 @@ export default class Canvas {
 
 	public invalidateOffset () {
 		delete this.offset;
+	}
+
+	public render (canvas: Canvas) {
+		canvas.context.drawImage(this.element, 0, 0);
 	}
 }

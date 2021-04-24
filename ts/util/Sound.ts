@@ -24,7 +24,12 @@ export default class Sound {
 
 	private static readonly sounds = new Map<string, Sound>();
 
-	public static get (type: SoundType, which = Random.int(versionCount[type])) {
+	public static get (type: SoundType, which?: number): Sound;
+	public static get (type?: SoundType, which?: number): Sound | undefined;
+	public static get (type?: SoundType, which = type === undefined ? 0 : Random.int(versionCount[type])) {
+		if (type === undefined)
+			return undefined;
+
 		const name = `${SoundType[type]}${which}`;
 		let sprite = this.sounds.get(name);
 		if (!sprite)

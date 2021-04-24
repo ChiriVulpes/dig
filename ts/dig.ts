@@ -1,4 +1,5 @@
 import { TILE, TILES } from "./Constants";
+import { Stats } from "./game/Stats";
 import World from "./game/World";
 import Canvas from "./ui/Canvas";
 import { Mouse } from "./ui/Mouse";
@@ -10,8 +11,8 @@ import Sound from "./util/Sound";
 // Game
 //
 
-export const world = new World();
-world.generateRows(TILES);
+export const stats = new Stats();
+export const world = new World(stats);
 export const view = new View();
 
 
@@ -49,7 +50,7 @@ export const mouse = new Mouse()
 function update () {
 	requestAnimationFrame(update);
 
-	view.update(world, mouse);
+	view.update(world, stats, mouse);
 
 
 	render();
