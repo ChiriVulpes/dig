@@ -1,8 +1,9 @@
 import { TILE, TILES } from "./Constants";
-import { TileType } from "./game/Tile";
 import World from "./game/World";
 import Canvas from "./ui/Canvas";
+import { Mouse } from "./ui/Mouse";
 import { View } from "./ui/View";
+import Sound from "./util/Sound";
 
 
 ////////////////////////////////////
@@ -10,12 +11,7 @@ import { View } from "./ui/View";
 //
 
 export const world = new World();
-for (let y = 0; y < world.height; y++) {
-	for (let x = 0; x < world.width; x++) {
-		world.setTile(x, y, TileType.Rock);
-	}
-}
-
+world.generateRows(TILES);
 export const view = new View();
 
 
@@ -23,31 +19,45 @@ export const view = new View();
 // UI
 //
 
-export const renderCanvas = new Canvas().setSize(TILE * TILES, TILE * TILES).appendTo(document.body);
-// export const outputCanvas = new Canvas().appendTo(document.body);
+Sound.preload();
 
+
+export const canvas = new Canvas().setSize(TILE * TILES, TILE * TILES).appendTo(document.body);
 
 function setCanvasSize () {
 	const realSize = TILES * TILE;
 	const size = Math.floor(Math.min(window.innerWidth, window.innerHeight) / realSize) * realSize;
-	renderCanvas.setDisplaySize(size, size);
+	canvas.setDisplaySize(size, size);
+	canvas.invalidateOffset();
 }
 
 setCanvasSize();
 window.addEventListener("resize", setCanvasSize);
 
 
+export const mouse = new Mouse()
+	.setWorld(world)
+	.setView(view)
+	.setCanvas(canvas);
+
+
 ////////////////////////////////////
-// Render
+// Render & Update
+// It's a jam game, don't complain
 //
 
-function render () {
-	requestAnimationFrame(render);
+function update () {
+	requestAnimationFrame(update);
 
-	renderCanvas.clear();
+	view.update(world, mouse);
 
-	view.render(world, renderCanvas);
-	// renderCanvas.render(outputCanvas);
+
+	render();
 }
 
-render();
+function render () {
+	canvas.clear();
+	view.render(world, canvas);
+}
+
+update();
