@@ -37,6 +37,14 @@ export default class World {
 				this.setTile(x, y, TileType.Rock);
 		}
 
+		if (rows >= 3) {
+			const width = Random.int(4, 10);
+			const startX = Random.int(1 - width, TILES);
+			for (let y = this.tiles.length - rows; y < this.tiles.length; y++)
+				for (let x = Math.max(0, startX); x < Math.min(startX + width, TILES); x++)
+					this.setTile(x, y, TileType.Metal);
+		}
+
 		while (this.tiles.length - this.first > TILES * 2)
 			delete this.tiles[this.first++];
 	}

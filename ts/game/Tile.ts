@@ -7,7 +7,23 @@ import World from "./World";
 
 export enum TileType {
 	Rock,
+	Metal,
 }
+
+interface ITileDescription {
+	hitSound: SoundType;
+	invulnerable?: true;
+}
+
+const tiles: Record<TileType, ITileDescription> = {
+	[TileType.Metal]: {
+		hitSound: SoundType.Metal,
+		invulnerable: true,
+	},
+	[TileType.Rock]: {
+		hitSound: SoundType.Hit,
+	}
+};
 
 export default class Tile implements IHasMouseEventHandlers {
 
@@ -19,6 +35,7 @@ export default class Tile implements IHasMouseEventHandlers {
 	};
 
 	private durability = Random.int(2, 4);
+	private breakAnim = 0;
 
 	public constructor (public readonly type: TileType) {
 	}
@@ -36,6 +53,9 @@ export default class Tile implements IHasMouseEventHandlers {
 		this.getSprite().render(canvas, x, y);
 		if (this.hovering)
 			Sprite.get("ui/hover").render(canvas, x, y);
+
+		if (this.breakAnim)
+			Sprite.get(`tile/break/${this.breakAnim}`).render(canvas, x, y);
 	}
 
 	public onMouseEnter () {
@@ -47,13 +67,17 @@ export default class Tile implements IHasMouseEventHandlers {
 	}
 
 	public onMouseClick () {
-		if (--this.durability < 0) {
-			this.context?.world.removeTile(this.context.x, this.context.y);
-			Sound.get(SoundType.Break).play();
-			return;
+		if (!tiles[this.type].invulnerable) {
+			if (--this.durability < 0) {
+				this.context?.world.removeTile(this.context.x, this.context.y);
+				Sound.get(SoundType.Break).play();
+				return;
+			}
+
+			this.breakAnim++;
 		}
 
-		Sound.get(SoundType.Hit).play();
+		Sound.get(tiles[this.type].hitSound).play();
 	}
 
 	public onMouseDown () {

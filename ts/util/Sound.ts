@@ -4,10 +4,12 @@ import Random from "./Random";
 export enum SoundType {
 	Hit,
 	Break,
+	Metal,
 }
 
 const versionCount: Record<SoundType, number> = {
 	[SoundType.Hit]: 5,
+	[SoundType.Metal]: 4,
 	[SoundType.Break]: 1,
 };
 

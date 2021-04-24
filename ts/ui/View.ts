@@ -24,7 +24,7 @@ export class View {
 			world.generateFor(this.getBottomVisibleRowY());
 		}
 
-		if (this.step > 100)
+		if (this.step > 0)
 			this.step = -16;
 	}
 
