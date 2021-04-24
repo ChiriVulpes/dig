@@ -48,14 +48,6 @@
 		for (const req of module._requirements)
 			requirements.add(req);
 
-		const preload = name.endsWith("$preload");
-		if (preload) {
-			if (module._requirements.length)
-				throw new Error(`Module "${name}" cannot import other modules`);
-
-			initializeModule(module);
-		}
-
 		if (initialProcessCompleted)
 			processModules();
 	}
@@ -116,39 +108,10 @@
 
 	let initialProcessCompleted = false;
 	async function processModules () {
-		const scriptsStillToImport = Array.from(document.querySelectorAll("template[data-script]"))
-			.map(definition => {
-				const script = /** @type {HTMLTemplateElement} */ (definition).dataset.script;
-				definition.remove();
-				return script;
-			});
-
-		await Promise.all(Array.from(new Set(scriptsStillToImport)).map(tryImportAdditionalModule));
-
-		while (requirements.size) {
-			const remainingRequirements = Array.from(requirements);
-			await Promise.all(remainingRequirements.map(tryImportAdditionalModule));
-			for (const req of remainingRequirements)
-				requirements.delete(req);
-		}
-
 		for (const [name, module] of moduleMap.entries())
 			processModule(name, module);
 
 		initialProcessCompleted = true;
-	}
-
-	/**
-	 * @param {string} req 
-	 */
-	async function tryImportAdditionalModule (req) {
-		if (moduleMap.has(req))
-			return;
-
-		await importAdditionalModule(req);
-
-		if (!moduleMap.has(req))
-			throw new Error(`The required module '${req}' could not be asynchronously loaded.`);
 	}
 
 	/**
@@ -159,7 +122,7 @@
 		document.head.appendChild(script);
 		/** @type {Promise<void>} */
 		const promise = new Promise(resolve => script.addEventListener("load", () => resolve()));
-		script.src = `/script/${req}.js`;
+		script.src = `/js/${req}.js`;
 		return promise;
 	}
 

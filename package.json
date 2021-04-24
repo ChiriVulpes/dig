@@ -15,6 +15,6 @@
 		"ts:watch": "npx tsc --project ts/tsconfig.json --watch --preserveWatchOutput",
 		"scss": "npx sass scss:css",
 		"scss:watch": "npx sass scss:css --watch",
-		"serve": "npx http-server"
+		"serve": "npx http-server -c-1"
 	}
 }
