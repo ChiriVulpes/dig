@@ -253,11 +253,8 @@ export default class Tile implements IMouseEventHandler {
 		if ((light ?? Infinity) <= 0 && (tile.context.world.stats.state === GameState.FellBehind || tile.revealed))
 			light = 1;
 
-		if (description.invisible && description.background === undefined || light === 0)
+		if (description.invisible && description.background === undefined || (light !== undefined && light <= 0))
 			return;
-
-		if (light !== undefined && light < LIGHT_MAX)
-			canvas.context.filter = `brightness(${Math.floor(light / LIGHT_MAX * 100)}%)`;
 
 		if (!description.invisible) {
 			if (description.base !== undefined)
@@ -281,13 +278,15 @@ export default class Tile implements IMouseEventHandler {
 		}
 
 		canvas.context.globalCompositeOperation = "destination-over";
-		if (description.background !== undefined && (tile?.context.y ?? 0) >= SURFACE_TILES)
+		if (description.background !== undefined && (tile?.context.y ?? 0) >= SURFACE_TILES && (description.mask ? mask : true))
 			Sprite.get(`tile/background/${TileType[description.background].toLowerCase()}`).render(canvas, x, y);
 
-		if (light !== undefined)
-			canvas.context.filter = "none";
-
 		canvas.context.globalCompositeOperation = "source-over";
+
+		if (light !== undefined && light < LIGHT_MAX) {
+			canvas.context.fillStyle = `rgba(0,0,0,${1 - Math.min(1, Math.max(0, light / LIGHT_MAX))})`;
+			canvas.context.fillRect(x, y, TILE, TILE);
+		}
 	}
 
 	public render (canvas: Canvas, x: number, y: number) {
