@@ -9,11 +9,6 @@ export class Ui implements IMouseEventHandler {
 		...this.stats.state === GameState.Surface ? [
 			...!this.stats.highscore ? [] : [`HIGH SCORE: ${this.stats.highscore}`],
 		] : [
-			...this.stats.state !== GameState.FellBehind ? []
-				: [
-					"GAME OVER!",
-					"Click anywhere to play again\n",
-				],
 			`SCORE: ${this.stats.score}`,
 			`DEPTH: ${this.stats.turn}`,
 			...this.stats.explosives === NOT_DISCOVERED_EXPLOSIVES || this.stats.state === GameState.FellBehind ? []
@@ -21,11 +16,15 @@ export class Ui implements IMouseEventHandler {
 		],
 	].join("\n"));
 
-	private title = new MutableText(() => "DIG DIG DIG")
+	private title = new MutableText(() =>
+		this.stats.state === GameState.Surface ? "DIG DIG DIG"
+			: "GAME OVER!")
 		.setScale(4);
 	private author = new MutableText(() => "by Chirichirichiri")
 		.setScale(2);
-	private hint = new MutableText(() => "Use the mouse to start mining!");
+	private hint = new MutableText(() =>
+		this.stats.state === GameState.Surface ? "Use the mouse to start mining!"
+			: "Click anywhere to play again!");
 
 	public constructor (private readonly stats: Stats) {
 	}
@@ -34,19 +33,24 @@ export class Ui implements IMouseEventHandler {
 		let width: number;
 		let height: number;
 
-		if (this.stats.state === GameState.Surface) {
+		if (this.stats.state !== GameState.Mining) {
 			[width, height] = this.title.getLayout() ?? [0, 0];
 			this.title.render(canvas,
 				canvas.width / 2 - width / 2,
 				canvas.height / 4 - height / 2 + Math.floor(Math.sin(this.stats.tick / 200) * 10));
+		}
 
-			const titleXEnd = canvas.width / 2 + width / 2;
-			const titleYEnd = canvas.height / 4 + height / 2;
+		if (this.stats.state === GameState.Surface) {
+			const titleXEnd = canvas.width / 2 + width! / 2;
+			const titleYEnd = canvas.height / 4 + height! / 2;
 			[width, height] = this.author.getLayout() ?? [0, 0];
 			this.author.render(canvas,
 				titleXEnd - width,
 				titleYEnd + 5 + Math.floor(Math.sin((this.stats.tick - 200) / 200) * 10));
 
+		}
+
+		if (this.stats.state !== GameState.Mining) {
 			[width, height] = this.hint.getLayout() ?? [0, 0];
 			this.hint.render(canvas,
 				canvas.width - width - 10 + Math.floor(Math.sin(this.stats.tick / 40) * -3),
