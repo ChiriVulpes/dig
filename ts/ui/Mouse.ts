@@ -132,6 +132,9 @@ export class Mouse {
 	}
 
 	private onDown (event: CursorEvent) {
+		if (event.button === 2)
+			return;
+
 		this.updatePosition(event);
 		this.held = true;
 		this.emitMouseEvent("onMouseDown", this.tile, this.ui);
