@@ -22,6 +22,7 @@ export enum TileType {
 	Cavern,
 	Mineshaft,
 	Explosives,
+	Gold,
 }
 
 export enum TileCategory {
@@ -67,6 +68,13 @@ const tiles: Record<TileType, ITileDescription> = {
 		breakable: DamageType.Mining,
 	},
 	[TileType.Emerald]: {
+		base: TileType.Rock,
+		category: TileCategory.Ore,
+		hitSound: SoundType.Gem,
+		breakSound: SoundType.BreakGem,
+		score: 100,
+	},
+	[TileType.Gold]: {
 		base: TileType.Rock,
 		category: TileCategory.Ore,
 		hitSound: SoundType.Gem,

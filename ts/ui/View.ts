@@ -5,7 +5,7 @@ import Canvas from "./Canvas";
 import { Mouse } from "./Mouse";
 import Sprite from "./Sprite";
 
-// const SURFACE_TILES = 20;
+const VIEW_PADDING_TILES = 3;
 
 export class View {
 	public y = 0;
@@ -45,7 +45,7 @@ export class View {
 		}
 
 		const bottomRow = this.getBottomVisibleRowY();
-		if (this.step > 0 && (stats.dug > this.y / TILE || world.hasMineshaft(bottomRow - 2)))
+		if (this.step > 0 && (stats.dug > this.y / TILE || world.hasMineshaft(bottomRow - VIEW_PADDING_TILES)))
 			this.step = -32;
 
 		if (this.step <= 0 && this.step % 2) {

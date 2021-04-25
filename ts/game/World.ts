@@ -85,7 +85,7 @@ export default class World {
 			const size = Random.int(1, 4);
 			let x = Random.int(0, TILES);
 			let y = Random.int(this.tiles.length - rows, this.tiles.length);
-			this.generateVeinAt(TileType.Emerald, size, x, y, TileType.Rock);
+			this.generateVeinAt(TileType.Gold, size, x, y, TileType.Rock);
 		}
 
 		// clean up old tiles
