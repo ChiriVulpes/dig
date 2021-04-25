@@ -74,14 +74,14 @@ const tiles: Record<TileType, ITileDescription> = {
 		category: TileCategory.Ore,
 		hitSound: SoundType.Gem,
 		breakSound: SoundType.BreakGem,
-		score: 100,
+		score: 2500,
 	},
 	[TileType.Gold]: {
 		base: TileType.Rock,
 		category: TileCategory.Ore,
 		hitSound: SoundType.Gem,
 		breakSound: SoundType.BreakGem,
-		score: 100,
+		score: 500,
 	},
 	[TileType.Mineshaft]: {
 		invisible: true,
