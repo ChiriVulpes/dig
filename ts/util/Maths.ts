@@ -1,6 +1,8 @@
 namespace Maths {
 	export function lerp (from: number, to: number, t: number): number {
-		return (1 - t) * from + t * to;
+		return t < 0 ? from
+			: t > 1 ? to
+				: (1 - t) * from + t * to;
 	}
 
 	export function unlerp (from: number, to: number, lerped: number): number {

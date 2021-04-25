@@ -81,7 +81,7 @@ export default class World {
 
 		const below = this.tiles.length - rows;
 
-		while (Random.chance(Maths.lerp(0.6, 0.7, this.stats.difficulty)))
+		while (Random.chance(Maths.lerp(0.4, 0.6, this.stats.difficulty)))
 			this.generateMetalRemains(below);
 
 		while (Random.chance(Maths.lerp(0.6, 0.3, this.stats.difficulty)))
@@ -158,13 +158,13 @@ export default class World {
 		this.generateStructure(below, {
 			border: {
 				type: TileType.Metal,
-				decay: [{ type: TileType.Cavern, chance: Maths.lerp(0.7, 0.1, this.stats.difficulty) }],
+				decay: [{ type: TileType.Cavern, chance: Maths.lerp(0.3, 0.1, this.stats.difficulty) }],
 			},
 			inside: {
 				type: TileType.Cavern,
 				decay: [
 					{ type: TileType.Metal, chance: 0.1 },
-					{ type: TileType.Explosives, chance: 0.1 },
+					{ type: TileType.Explosives, chance: Maths.lerp(0.1, 0, Math.max(0, this.stats.explosives) / 5) },
 				],
 			},
 			width: Random.int(4, Maths.lerp(6, 12, this.stats.difficulty)),
