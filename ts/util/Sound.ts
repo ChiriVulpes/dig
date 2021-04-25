@@ -36,7 +36,7 @@ export default class Sound {
 		if (type === undefined)
 			return undefined;
 
-		const name = `${SoundType[type]}${which}`;
+		const name = `${SoundType[type].toLowerCase()}${which}`;
 		let sprite = this.sounds.get(name);
 		if (!sprite)
 			this.sounds.set(name, sprite = new Sound(name));
