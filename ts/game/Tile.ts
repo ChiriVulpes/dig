@@ -92,6 +92,7 @@ const tiles: Record<TileType, ITileDescription> = {
 
 			tile.context.world.stats.explosives--;
 			tile.context.world.setTile(tile.context.x, tile.context.y, TileType.Explosives);
+			Sound.get(SoundType.Equip).play();
 		},
 	},
 	[TileType.Cavern]: {
@@ -106,12 +107,13 @@ const tiles: Record<TileType, ITileDescription> = {
 	[TileType.Explosives]: {
 		background: TileType.Rock,
 		separated: true,
-		onMouseClick (tile: Tile) {
+		onMouseDown (tile: Tile) {
 			if (!tile.isAccessible())
 				return;
 
 			tile.context.world.stats.addExplosive();
 			tile.remove(true);
+			Sound.get(SoundType.Unequip).play();
 		},
 		onMouseRightClick (tile: Tile) {
 			if (!tile.isAccessible())
@@ -131,6 +133,11 @@ function explodeExplosives (tile: Tile) {
 	Sound.get(SoundType.Explode).play();
 
 	const range = Random.int(4, Random.int(5, Random.int(6, 8))); // use multiple calls to weight smaller explosions higher
+	tile.context.world.particles.create(Sprite.get("explosion"),
+		tile.context.x * TILE + TILE / 2,
+		tile.context.y * TILE + TILE / 2,
+		128, range / 2);
+
 	for (let y = -range + 1; y < range; y++) {
 		const absY = Math.abs(y);
 		for (let x = -range + 1; x < range; x++) {
@@ -328,8 +335,10 @@ export default class Tile implements IMouseEventHandler {
 	public damage (damageType: DamageType, amount = 1, effects = true) {
 		getProperty(this.type, "damage")?.(this, damageType, amount);
 
+		let dealtDamage = false;
 		if (damageType >= getProperty(this.type, "breakable", DamageType.Invulnerable)) {
 			this.durability -= amount;
+			dealtDamage = true;
 			if (this.durability < 0) {
 				this.break(damageType, effects);
 				return;
@@ -340,7 +349,8 @@ export default class Tile implements IMouseEventHandler {
 
 		if (effects) {
 			Sound.get(getProperty(this.type, "hitSound"))?.play();
-			this.particles(2);
+			if (dealtDamage)
+				this.particles(2);
 		}
 	}
 

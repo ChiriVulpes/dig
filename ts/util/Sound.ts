@@ -8,6 +8,8 @@ export enum SoundType {
 	Gem,
 	BreakGem,
 	Explode,
+	Unequip,
+	Equip,
 }
 
 const versionCount: Record<SoundType, number> = {
@@ -16,7 +18,9 @@ const versionCount: Record<SoundType, number> = {
 	[SoundType.Break]: 4,
 	[SoundType.Gem]: 4,
 	[SoundType.BreakGem]: 3,
-	[SoundType.Explode]: 1,
+	[SoundType.Explode]: 4,
+	[SoundType.Unequip]: 4,
+	[SoundType.Equip]: 4,
 };
 
 export default class Sound {
@@ -44,15 +48,26 @@ export default class Sound {
 		return sprite;
 	}
 
-	public audio?: HTMLAudioElement;
+	public instances: HTMLAudioElement[] = [];
 
 	public constructor (public readonly name: string) {
-		const audio = document.createElement("audio");
-		audio.src = `sfx/${name}.mp3`;
-		audio.addEventListener("canplaythrough", () => this.audio = audio);
+		const audio = new Audio(`sfx/${name}.mp3`);
+		audio.addEventListener("canplaythrough", () => this.instances.push(audio));
 	}
 
 	public play () {
-		this.audio?.play();
+		if (!this.instances.length)
+			return;
+
+		for (const instance of this.instances) {
+			if (instance.paused) {
+				instance.play();
+				return;
+			}
+		}
+
+		const audio = this.instances[0].cloneNode() as HTMLAudioElement;
+		audio.play();
+		this.instances.push(audio);
 	}
 }

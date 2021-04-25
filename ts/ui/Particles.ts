@@ -19,9 +19,9 @@ export class Particles {
 
 	private readonly particles: IParticle[] = [];
 
-	public create (sprite: Sprite, x: number, y: number, count: number) {
+	public create (sprite: Sprite, x: number, y: number, count: number, speedMultiplier = 1) {
 		for (let i = 0; i < count; i++) {
-			const [xv, yv] = Maths.direction(Random.float(Math.PI * 2), Random.float(2, 4));
+			const [xv, yv] = Maths.direction(Random.float(Math.PI * 2), Random.float(2, 4) * speedMultiplier);
 			this.particles.push({
 				sprite,
 				x, y,
@@ -37,7 +37,7 @@ export class Particles {
 			const particle = this.particles[i];
 			particle.xv *= 0.95;
 			particle.yv *= 0.95;
-			particle.yv += 0.2;
+			particle.yv += 0.3;
 			particle.x += particle.xv;
 			particle.y += particle.yv;
 			particle.life--;
