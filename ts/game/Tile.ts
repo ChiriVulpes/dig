@@ -3,7 +3,6 @@ import Canvas from "../ui/Canvas";
 import { IHasMouseEventHandlers } from "../ui/Mouse";
 import Sprite from "../ui/Sprite";
 import Direction, { Directions } from "../util/Direction";
-import Enums from "../util/Enums";
 import Random from "../util/Random";
 import Sound, { SoundType } from "../util/Sound";
 import World from "./World";
@@ -36,19 +35,25 @@ const tiles: Record<TileType, ITileDescription> = {
 	}
 };
 
+const LIGHT_MAX = 3;
+
+export interface ITileContext {
+	world: World;
+	x: number;
+	y: number;
+}
+
 export default class Tile implements IHasMouseEventHandlers {
 
 	private hovering = false;
-	private context?: {
-		world: World;
-		x: number;
-		y: number;
-	};
+	private context?: ITileContext;
 
 	private durability = Random.int(2, 4);
 	private breakAnim = 0;
 
 	private mask?: Direction;
+	private light?: number;
+	private recalcLightTick: number | undefined = -1;
 
 	public constructor (public readonly type: TileType) {
 	}
@@ -62,8 +67,9 @@ export default class Tile implements IHasMouseEventHandlers {
 		return Sprite.get(`tile/${TileType[this.type].toLowerCase()}`);
 	}
 
-	public invalidateMask () {
+	public invalidate (tick: number) {
 		delete this.mask;
+		this.recalcLightTick = tick;
 	}
 
 	public getMask () {
@@ -78,13 +84,42 @@ export default class Tile implements IHasMouseEventHandlers {
 		if (!this.context || !tiles[this.type].mask)
 			return;
 
-		for (const direction of Enums.values(Direction))
-			if (!this.context.world.getTile(...Directions.move(this.context.x, this.context.y, direction)))
+		for (const direction of Directions.CARDINALS)
+			if (!this.context.world.getTileInDirection(direction, this.context))
 				this.mask |= direction;
 	}
 
+	public getLight (tick: number) {
+		if (this.recalcLightTick !== undefined && this.recalcLightTick < tick)
+			this.updateLight(tick);
+
+		return this.light ?? 0;
+	}
+
+	private updateLight (tick: number) {
+		if (!this.context)
+			return;
+
+		const tiles = Directions.CARDINALS
+			.map(direction => this.context!.world.getTileInDirection(direction, this.context!));
+
+		const maxLightLevel = Math.max(...tiles.map(tile => tile === undefined ? LIGHT_MAX + 1 : tile?.light ?? 0));
+		this.light = maxLightLevel - 1;
+		for (const tile of tiles)
+			if (tile && (tile.light ?? 0) < this.light - 1)
+				tile.invalidate(tick);
+
+		delete this.recalcLightTick;
+	}
+
 	public render (canvas: Canvas, x: number, y: number) {
+		const light = this.getLight(this.context?.world.stats.tick ?? 0);
+		if (light < LIGHT_MAX)
+			canvas.context.filter = `brightness(${Math.floor(light / LIGHT_MAX * 100)}%)`;
+
 		this.getSprite().render(canvas, x, y);
+
+		canvas.context.filter = "none";
 
 		const mask = this.getMask();
 		if (mask !== undefined) {
@@ -111,7 +146,8 @@ export default class Tile implements IHasMouseEventHandlers {
 	}
 
 	public onMouseEnter () {
-		this.hovering = true;
+		if (this.light === LIGHT_MAX)
+			this.hovering = true;
 	}
 
 	public onMouseLeave () {
@@ -119,6 +155,15 @@ export default class Tile implements IHasMouseEventHandlers {
 	}
 
 	public onMouseClick () {
+	}
+
+	public onMouseHold () {
+		if (!this.hovering || !this.context)
+			return;
+
+		if (this.context.world.stats.tick % 10)
+			return;
+
 		if (!tiles[this.type].invulnerable) {
 			if (--this.durability < 0 && this.context) {
 				this.context.world.removeTile(this.context.x, this.context.y);

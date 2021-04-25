@@ -1,9 +1,8 @@
 import { TILES } from "../Constants";
 import Direction, { Directions } from "../util/Direction";
-import Enums from "../util/Enums";
 import Random from "../util/Random";
 import { Stats } from "./Stats";
-import Tile, { TileType } from "./Tile";
+import Tile, { ITileContext, TileType } from "./Tile";
 
 const BLANK_ROWS = TILES - 1;
 
@@ -20,18 +19,30 @@ export default class World {
 	}
 
 	public setTile (x: number, y: number, type: TileType) {
-		this.invalidateAdjacentTileMasks(x, y);
+		this.invalidateAdjacentTiles(x, y);
 		return this.tiles[y][x] = new Tile(type)
 			.setContext(this, x, y);
 	}
 
 	public removeTile (x: number, y: number) {
-		this.invalidateAdjacentTileMasks(x, y);
+		this.invalidateAdjacentTiles(x, y);
 		delete this.tiles[y]?.[x];
 	}
 
-	public getTile (x: number, y: number): Tile | undefined {
+	public getTile (x: number, y: number): Tile | undefined | null {
+		if (!this.tiles[y])
+			return null;
+
+		if (x < 0 || x >= TILES)
+			return null;
+
 		return this.tiles[y]?.[x];
+	}
+
+	public getTileInDirection (direction: Direction, context: ITileContext): Tile | undefined | null;
+	public getTileInDirection (direction: Direction, x: number, y: number): Tile | undefined | null;
+	public getTileInDirection (direction: Direction, context: ITileContext | number, y?: number) {
+		return this.getTile(...Directions.move(typeof context === "number" ? context : context.x, typeof context === "number" ? y! : context.y, direction));
 	}
 
 	public generateFor (y: number) {
@@ -64,8 +75,8 @@ export default class World {
 			delete this.tiles[this.first++];
 	}
 
-	private invalidateAdjacentTileMasks (x: number, y: number) {
-		for (const direction of Enums.values(Direction))
-			this.getTile(...Directions.move(x, y, direction))?.invalidateMask();
+	private invalidateAdjacentTiles (x: number, y: number) {
+		for (const direction of Directions.CARDINALS)
+			this.getTileInDirection(direction, x, y)?.invalidate(this.stats.tick);
 	}
 }

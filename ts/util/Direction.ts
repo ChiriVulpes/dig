@@ -9,6 +9,9 @@ enum Direction {
 export default Direction;
 
 export namespace Directions {
+
+	export const CARDINALS = [Direction.North, Direction.East, Direction.South, Direction.West] as const;
+
 	export function move (x: number, y: number, direction: Direction): [x: number, y: number] {
 		switch (direction) {
 			case Direction.North: return [x, y - 1];

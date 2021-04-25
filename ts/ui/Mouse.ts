@@ -12,11 +12,13 @@ export interface IHasMouseEventHandlers {
 	onMouseDown (): any;
 	onMouseUp (): any;
 	onMouseClick (): any;
+	onMouseHold (): any;
 }
 
 export class Mouse {
 
 	public tile?: Tile;
+	private held = false;
 
 	private x = 0;
 	private y = 0;
@@ -47,7 +49,12 @@ export class Mouse {
 		return this;
 	}
 
-	public update (event?: CursorEvent) {
+	public update () {
+		if (this.held)
+			this.tile?.onMouseHold();
+	}
+
+	public updatePosition (event?: CursorEvent) {
 		const x = this.x = event?.clientX ?? event?.touches?.[0].clientX ?? this.x;
 		const y = this.y = event?.clientY ?? event?.touches?.[0].clientY ?? this.y;
 
@@ -56,7 +63,7 @@ export class Mouse {
 			return;
 
 		this.tile?.onMouseLeave();
-		this.tile = newTile;
+		this.tile = newTile ?? undefined;
 		newTile?.onMouseEnter();
 	}
 
@@ -85,21 +92,24 @@ export class Mouse {
 	}
 
 	private onMove (event: CursorEvent) {
-		this.update(event);
+		this.updatePosition(event);
 	}
 
 	private onClick (event: CursorEvent) {
-		this.update(event);
+		this.updatePosition(event);
 		this.tile?.onMouseClick();
 	}
 
 	private onDown (event: CursorEvent) {
-		this.update(event);
+		this.updatePosition(event);
+		this.held = true;
 		this.tile?.onMouseDown();
+		this.tile?.onMouseHold();
 	}
 
 	private onUp (event: CursorEvent) {
-		this.update(event);
+		this.updatePosition(event);
 		this.tile?.onMouseUp();
+		this.held = false;
 	}
 }
