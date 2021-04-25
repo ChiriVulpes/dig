@@ -1,26 +1,25 @@
 import { TILES } from "../Constants";
 import Direction, { Directions } from "../util/Direction";
+import Maths from "../util/Maths";
 import Random from "../util/Random";
-import { Stats } from "./Stats";
+import { GameState, Stats } from "./Stats";
 import Tile, { ITileContext, TileType } from "./Tile";
 
 const BLANK_ROWS = TILES - 1;
 
 export default class World {
-	private first = -1;
+	private first!: number;
 	public readonly tiles: Tile[][] = [];
+	private readonly mineshaft: (boolean | undefined)[] = [];
 
 	public constructor (public readonly stats: Stats) {
-		for (let i = 0; i < BLANK_ROWS; i++)
-			this.generateRow(TileType.Mineshaft);
-
-		this.generateRow(TileType.Grass);
-		this.generateRow(TileType.Rock);
-		this.generateRow(TileType.Rock);
+		this.generateNewWorld();
 	}
 
 	public setTile (x: number, y: number, type: TileType) {
 		this.invalidateAdjacentTiles(x, y);
+		if (type === TileType.Mineshaft)
+			this.mineshaft[y] = true;
 		return this.tiles[y][x] = new Tile(type, this, x, y);
 	}
 
@@ -45,6 +44,18 @@ export default class World {
 		return this.getTile(...Directions.move(typeof context === "number" ? context : context.x, typeof context === "number" ? y! : context.y, direction));
 	}
 
+	public setHasMineable (y: number) {
+		this.mineshaft[y] = true;
+	}
+
+	public hasMineshaft (y: number) {
+		let mineshaft = this.mineshaft[y];
+		if (mineshaft === undefined)
+			mineshaft = this.mineshaft[y] = this.tiles[y]?.some(tile => tile.type === TileType.Mineshaft) ?? false;
+
+		return mineshaft;
+	}
+
 	public generateFor (y: number) {
 		while (this.tiles.length < y)
 			this.generateRows();
@@ -64,24 +75,33 @@ export default class World {
 
 		const below = this.tiles.length - rows;
 
-		while (Random.chance(0.4))
+		while (Random.chance(Maths.lerp(0.4, 0.7, this.stats.difficulty)))
 			this.generateMetalRemains(below);
 
-		while (Random.chance(0.5))
+		while (Random.chance(Maths.lerp(0.5, 0.3, this.stats.difficulty)))
 			this.generateCave(below);
 
-		while (Random.chance(0.6)) {
+		while (Random.chance(0.8)) {
 			const size = Random.int(1, 4);
 			let x = Random.int(0, TILES);
 			let y = Random.int(this.tiles.length - rows, this.tiles.length);
 			this.generateVeinAt(TileType.Emerald, size, x, y, TileType.Rock);
 		}
 
-		while (this.tiles.length - this.first > TILES * 2)
-			delete this.tiles[this.first++];
+		// clean up old tiles
+		// while (this.tiles.length - this.first > TILES * 2)
+		// 	delete this.tiles[this.first++];
+
+		// increment this.first
+		while (this.tiles.length - this.first++ > TILES * 2);
 	}
 
 	public update () {
+		if (this.stats.state === GameState.Surface && this.tiles.length > BLANK_ROWS + 4) {
+			this.generateNewWorld();
+			return;
+		}
+
 		let y = this.first;
 		let row: (Tile | undefined)[];
 		while (row = this.tiles[++y])
@@ -92,6 +112,19 @@ export default class World {
 	private invalidateAdjacentTiles (x: number, y: number) {
 		for (const direction of Directions.CARDINALS)
 			this.getTileInDirection(direction, x, y)?.invalidate();
+	}
+
+	private generateNewWorld () {
+		this.first = -1;
+		this.tiles.splice(0, Infinity);
+		this.mineshaft.splice(0, Infinity);
+
+		for (let i = 0; i < BLANK_ROWS; i++)
+			this.generateRow(TileType.Mineshaft);
+
+		this.generateRow(TileType.Grass);
+		this.generateRow(TileType.Rock);
+		this.generateRow(TileType.Rock);
 	}
 
 	private generateCave (below: number) {

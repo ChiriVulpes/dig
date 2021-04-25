@@ -54,7 +54,7 @@ export class Text {
 	private image?: Canvas;
 	private generating = false;
 
-	public constructor (public readonly text: string, public readonly color: Color, public readonly maxWidth = Infinity) {
+	public constructor (public readonly text: string, public readonly color: Color, public readonly maxWidth = Infinity, public readonly scale = 1) {
 	}
 
 	private layout?: [width: number, height: number, splits: Set<number>];
@@ -63,7 +63,7 @@ export class Text {
 			let width = 0;
 			let lineWidth = 0;
 			let wordWidth = 0;
-			let height = CHAR_HEIGHT;
+			let height = CHAR_HEIGHT * this.scale;
 			let needsToAddSplit = false;
 			let splits = new Set<number>();
 			for (let i = 0; i < this.text.length; i++) {
@@ -77,11 +77,11 @@ export class Text {
 					needsToAddSplit = false;
 				}
 
-				const charWidth = characterWidthExceptions[char] ?? CHAR_WIDTH;
+				const charWidth = (characterWidthExceptions[char] ?? CHAR_WIDTH) * this.scale;
 				wordWidth += charWidth;
 
 				if (lineWidth + wordWidth > this.maxWidth || char === "\n") {
-					height += CHAR_HEIGHT;
+					height += CHAR_HEIGHT * this.scale;
 					width = Math.max(lineWidth, width);
 					lineWidth = 0;
 					needsToAddSplit = char !== "\n"; // we've already added the split for newlines, but otherwise split at the next space
@@ -91,7 +91,7 @@ export class Text {
 			lineWidth += wordWidth;
 			width = Math.max(lineWidth, width);
 
-			height++; // we render a shadow
+			height += this.scale; // we render a shadow, so we need to add 1px (multiplied by scale)
 			this.layout = [width, height, splits];
 		}
 
@@ -124,7 +124,7 @@ export class Text {
 
 		const shadow = new Canvas();
 		shadow.setSize(width, height);
-		await this.renderText(shadow, 1, splits, Color.BLACK);
+		await this.renderText(shadow, this.scale, splits, Color.BLACK);
 
 		const top = new Canvas();
 		top.setSize(width, height);
@@ -160,14 +160,15 @@ export class Text {
 					const sprite = Sprite.get(`ui/font/${FontSprite[fontSprite].toLowerCase()}`);
 					await sprite.loaded;
 					const def = fontSpriteDefinitions[fontSprite];
-					sprite.render(canvas, x, y, typeof def === "number" ? 0 : (code - def.start) * CHAR_WIDTH, 0, CHAR_WIDTH, CHAR_HEIGHT);
+					canvas.context.imageSmoothingEnabled = false;
+					sprite.render(canvas, x, y, CHAR_WIDTH * this.scale, CHAR_HEIGHT * this.scale, typeof def === "number" ? 0 : (code - def.start) * CHAR_WIDTH, 0, CHAR_WIDTH, CHAR_HEIGHT);
 				}
 			}
 
-			x += characterWidthExceptions[char] ?? CHAR_WIDTH;
+			x += (characterWidthExceptions[char] ?? CHAR_WIDTH) * this.scale;
 			if (splits.has(i)) {
 				x = 0;
-				y += CHAR_HEIGHT;
+				y += CHAR_HEIGHT * this.scale;
 			}
 		}
 

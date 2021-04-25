@@ -1,6 +1,6 @@
 import { SURFACE_TILES, TILE } from "../Constants";
 import Canvas from "../ui/Canvas";
-import { IHasMouseEventHandlers } from "../ui/Mouse";
+import { IMouseEventHandler } from "../ui/Mouse";
 import Sprite from "../ui/Sprite";
 import Direction, { Directions } from "../util/Direction";
 import Random from "../util/Random";
@@ -87,7 +87,7 @@ export interface ITileContext {
 	y: number;
 }
 
-export default class Tile implements IHasMouseEventHandlers {
+export default class Tile implements IMouseEventHandler {
 
 	private hovering = false;
 	public context: ITileContext;
@@ -224,6 +224,10 @@ export default class Tile implements IHasMouseEventHandlers {
 		return this.light === LIGHT_MAX && !tiles[this.type].nonselectable;
 	}
 
+	public isMineable () {
+		return this.isAccessible() && !tiles[this.type].invulnerable;
+	}
+
 	public onMouseEnter () {
 		if (this.isAccessible())
 			this.hovering = true;
@@ -231,9 +235,6 @@ export default class Tile implements IHasMouseEventHandlers {
 
 	public onMouseLeave () {
 		this.hovering = false;
-	}
-
-	public onMouseClick () {
 	}
 
 	public onMouseHold () {
@@ -249,8 +250,8 @@ export default class Tile implements IHasMouseEventHandlers {
 			if (--this.durability < 0 && this.context) {
 				this.context.world.removeTile(this.context.x, this.context.y, true);
 				Sound.get(getProperty(this.type, "breakSound") ?? SoundType.Break).play();
-				this.context.world.stats.dug++;
-				this.context.world.stats.score += tiles[this.type].score ?? 10;
+				this.context.world.stats.dig();
+				this.context.world.stats.score += tiles[this.type].score ?? 0;
 				return;
 			}
 
@@ -258,13 +259,5 @@ export default class Tile implements IHasMouseEventHandlers {
 		}
 
 		Sound.get(getProperty(this.type, "hitSound"))?.play();
-	}
-
-	public onMouseDown () {
-
-	}
-
-	public onMouseUp () {
-
 	}
 }

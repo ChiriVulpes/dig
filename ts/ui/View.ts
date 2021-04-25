@@ -1,5 +1,5 @@
 import { TILE, TILES } from "../Constants";
-import { Stats } from "../game/Stats";
+import { GameState, Stats } from "../game/Stats";
 import World from "../game/World";
 import Canvas from "./Canvas";
 import { Mouse } from "./Mouse";
@@ -17,6 +17,10 @@ export class View {
 		return Math.floor(this.y / TILE);
 	}
 
+	public getTopAccessibleRowY () {
+		return Math.ceil(this.y / TILE);
+	}
+
 	public getBottomVisibleRowY () {
 		return Math.ceil((this.y + TILES * TILE) / TILE);
 	}
@@ -25,8 +29,23 @@ export class View {
 	public update (world: World, stats: Stats, mouse: Mouse) {
 		this.step++;
 
+		if (stats.state === GameState.FellBehind) {
+			if (this.step < -300 + 32 && this.step % 2)
+				this.y++;
+
+			if (this.step > 0 && this.step % 2 && this.y > 0)
+				this.y--;
+
+			return;
+		}
+
+		if (stats.state === GameState.Surface) {
+			this.y = 0;
+			return;
+		}
+
 		const bottomRow = this.getBottomVisibleRowY();
-		if (this.step > 0 && (stats.dug > this.y / TILE || world.tiles[bottomRow].some(tile => tile.isAccessible())))
+		if (this.step > 0 && (stats.dug > this.y / TILE || world.hasMineshaft(bottomRow - 2)))
 			this.step = -32;
 
 		if (this.step <= 0 && this.step % 2) {
@@ -34,8 +53,22 @@ export class View {
 			mouse.updatePosition();
 			world.generateFor(bottomRow + 1);
 
-			if (this.y % 16 === 0)
-				stats.turn++;
+			if (this.y % 16 === 0) {
+				stats.passTurn();
+				stats.score += 10;
+			}
+		}
+
+		let hasMineshaft = false;
+		for (let y = this.getTopAccessibleRowY(); y < bottomRow; y++)
+			if (world.hasMineshaft(y)) {
+				hasMineshaft = true;
+				break;
+			}
+
+		if (!hasMineshaft && stats.state === GameState.Mining) {
+			stats.state = GameState.FellBehind;
+			this.step = -300;
 		}
 	}
 

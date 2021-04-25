@@ -38,13 +38,14 @@ setTimeout(setCanvasSize, 200);
 window.addEventListener("resize", setCanvasSize);
 
 
+export const ui = new Ui(stats);
+
+
 export const mouse = new Mouse()
 	.setWorld(world)
 	.setView(view)
-	.setCanvas(canvas);
-
-
-export const ui = new Ui(stats, mouse);
+	.setCanvas(canvas)
+	.setUi(ui);
 
 
 ////////////////////////////////////

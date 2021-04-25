@@ -1,18 +1,21 @@
 import { TILE, TILES } from "../Constants";
+import { GameState } from "../game/Stats";
 import Tile from "../game/Tile";
 import World from "../game/World";
 import Canvas from "./Canvas";
+import { Ui } from "./Ui";
 import { View } from "./View";
 
 type CursorEvent = Partial<MouseEvent> & Partial<TouchEvent>;
 
-export interface IHasMouseEventHandlers {
-	onMouseEnter (): any;
-	onMouseLeave (): any;
-	onMouseDown (): any;
-	onMouseUp (): any;
-	onMouseClick (): any;
-	onMouseHold (): any;
+export interface IMouseEventHandler {
+	onMouseEnter?(): any;
+	onMouseLeave?(): any;
+	onMouseMove?(x: number, y: number): any;
+	onMouseDown?(x: number, y: number): any;
+	onMouseUp?(x: number, y: number): any;
+	onMouseClick?(x: number, y: number): any;
+	onMouseHold?(x: number, y: number): any;
 }
 
 export class Mouse {
@@ -26,6 +29,7 @@ export class Mouse {
 	private canvas?: Canvas;
 	private world?: World;
 	private view?: View;
+	private ui?: Ui;
 
 	public constructor () {
 		window.addEventListener("mousemove", event => this.onMove(event));
@@ -49,14 +53,24 @@ export class Mouse {
 		return this;
 	}
 
+	public setUi (ui: Ui) {
+		this.ui = ui;
+		return this;
+	}
+
 	public update () {
 		if (this.held)
 			this.tile?.onMouseHold();
 	}
 
 	public updatePosition (event?: CursorEvent) {
+		const oldX = this.x;
+		const oldY = this.y;
 		const x = this.x = event?.clientX ?? event?.touches?.[0].clientX ?? this.x;
 		const y = this.y = event?.clientY ?? event?.touches?.[0].clientY ?? this.y;
+
+		if (x !== oldX || y !== oldY)
+			this.emitMouseEvent("onMouseMove", this.ui);
 
 		const newTile = this.calculateTarget(x, y);
 		if (this.tile === newTile)
@@ -83,12 +97,19 @@ export class Mouse {
 		x *= size / canvasSize.x;
 		y *= size / canvasSize.y;
 
-		y += this.view.y;
+		if (this.world.stats.state === GameState.FellBehind)
+			return undefined;
+
+		return this.calculateTileTarget(x, y);
+	}
+
+	private calculateTileTarget (x: number, y: number) {
+		y += this.view!.y;
 
 		x = Math.floor(x / TILE);
 		y = Math.floor(y / TILE);
 
-		return this.world.getTile(x, y);
+		return this.world!.getTile(x, y);
 	}
 
 	private onMove (event: CursorEvent) {
@@ -97,19 +118,24 @@ export class Mouse {
 
 	private onClick (event: CursorEvent) {
 		this.updatePosition(event);
-		this.tile?.onMouseClick();
+		this.emitMouseEvent("onMouseClick", this.tile, this.ui);
 	}
 
 	private onDown (event: CursorEvent) {
 		this.updatePosition(event);
 		this.held = true;
-		this.tile?.onMouseDown();
-		this.tile?.onMouseHold();
+		this.emitMouseEvent("onMouseDown", this.tile, this.ui);
+		this.emitMouseEvent("onMouseHold", this.tile, this.ui);
 	}
 
 	private onUp (event: CursorEvent) {
 		this.updatePosition(event);
-		this.tile?.onMouseUp();
+		this.emitMouseEvent("onMouseUp", this.tile, this.ui);
 		this.held = false;
+	}
+
+	private emitMouseEvent (event: keyof IMouseEventHandler, ...handlers: (IMouseEventHandler | undefined)[]) {
+		for (const handler of handlers)
+			handler?.[event]?.(this.x, this.y);
 	}
 }

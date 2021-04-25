@@ -30,13 +30,16 @@ export default class Sprite {
 
 	public render (canvas: Canvas, x: number, y: number): void;
 	public render (canvas: Canvas, x: number, y: number, sx: number, sy: number, w: number, h: number): void;
-	public render (canvas: Canvas, x: number, y: number, sx?: number, sy?: number, w?: number, h?: number) {
+	public render (canvas: Canvas, x: number, y: number, w: number, h: number, sx: number, sy: number, sw: number, sh: number): void;
+	public render (canvas: Canvas, x: number, y: number, w?: number, h?: number, sx?: number, sy?: number, sw?: number, sh?: number) {
 		if (!this.image)
 			return;
 
-		if (sx === undefined)
+		if (w === undefined)
 			canvas.context.drawImage(this.image, x, y);
+		else if (sw === undefined)
+			canvas.context.drawImage(this.image, w, h!, sx!, sy!, x, y, sx!, sy!);
 		else
-			canvas.context.drawImage(this.image, sx, sy!, w!, h!, x, y, w!, h!);
+			canvas.context.drawImage(this.image, sx!, sy!, sw, sh!, x, y, w, h!);
 	}
 }
