@@ -10,11 +10,13 @@ body {
 canvas {
   width: calc(var(--width, auto) * 1px);
   height: calc(var(--height, auto) * 1px);
+  image-rendering: crisp-edges;
   image-rendering: pixelated;
 }
 
 svg {
-  display: none;
+  position: fixed;
+  top: 100vh;
 }
 
 /*# sourceMappingURL=index.css.map */
