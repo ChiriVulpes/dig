@@ -15,6 +15,7 @@ export interface IMouseEventHandler {
 	onMouseDown?(x: number, y: number): any;
 	onMouseUp?(x: number, y: number): any;
 	onMouseClick?(x: number, y: number): any;
+	onMouseRightClick?(x: number, y: number): any;
 	onMouseHold?(x: number, y: number): any;
 }
 
@@ -36,6 +37,7 @@ export class Mouse {
 		window.addEventListener("click", event => this.onClick(event));
 		window.addEventListener("mousedown", event => this.onDown(event));
 		window.addEventListener("mouseup", event => this.onUp(event));
+		window.addEventListener("contextmenu", event => this.onRightClick(event));
 	}
 
 	public setCanvas (canvas: Canvas) {
@@ -60,7 +62,7 @@ export class Mouse {
 
 	public update () {
 		if (this.held)
-			this.tile?.onMouseHold();
+			this.tile?.onMouseHold(this.x, this.y);
 	}
 
 	public updatePosition (event?: CursorEvent) {
@@ -119,6 +121,14 @@ export class Mouse {
 	private onClick (event: CursorEvent) {
 		this.updatePosition(event);
 		this.emitMouseEvent("onMouseClick", this.tile, this.ui);
+	}
+
+	private onRightClick (event: CursorEvent) {
+		if ((event.target as Partial<HTMLElement>).tagName === "CANVAS")
+			event.preventDefault?.();
+
+		this.updatePosition(event);
+		this.emitMouseEvent("onMouseRightClick", this.tile, this.ui);
 	}
 
 	private onDown (event: CursorEvent) {

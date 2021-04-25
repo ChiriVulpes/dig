@@ -13,7 +13,8 @@ enum FontSprite {
 	Period,
 	Comma,
 	Exclamation,
-	Colon
+	Colon,
+	Parentheses,
 }
 
 interface IFontSpriteCharacterRange {
@@ -27,6 +28,7 @@ const fontSpriteDefinitions: Record<FontSprite, FontSpriteDefinition> = {
 	[FontSprite.Uppercase]: { start: "A".charCodeAt(0), end: "Z".charCodeAt(0) },
 	[FontSprite.Lowercase]: { start: "a".charCodeAt(0), end: "z".charCodeAt(0) },
 	[FontSprite.Numbers]: { start: "0".charCodeAt(0), end: "9".charCodeAt(0) },
+	[FontSprite.Parentheses]: { start: "(".charCodeAt(0), end: ")".charCodeAt(0) },
 	[FontSprite.Period]: ".".charCodeAt(0),
 	[FontSprite.Comma]: ",".charCodeAt(0),
 	[FontSprite.Exclamation]: "!".charCodeAt(0),
@@ -38,13 +40,15 @@ const characterWidthExceptions: Partial<Record<string, number>> = {
 	T: 5,
 	i: 3,
 	j: 5,
-	l: 5,
+	l: 4,
 	r: 5,
 	1: 5,
 	",": 3,
 	".": 3,
 	"!": 3,
 	":": 3,
+	"(": 4,
+	")": 4,
 };
 
 const SVG = "http://www.w3.org/2000/svg";

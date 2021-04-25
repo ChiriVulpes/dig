@@ -4,6 +4,8 @@ export enum GameState {
 	FellBehind,
 }
 
+export const NOT_DISCOVERED_EXPLOSIVES = -1;
+
 export class Stats {
 	public dug!: number;
 	public turn!: number;
@@ -11,6 +13,7 @@ export class Stats {
 	public exhaustion!: number;
 	public score!: number;
 	public state!: GameState;
+	public explosives!: number;
 
 	public get difficulty () {
 		return this.turn / 1000;
@@ -27,6 +30,7 @@ export class Stats {
 		this.exhaustion = 0;
 		this.score = 0;
 		this.state = GameState.Surface;
+		this.explosives = NOT_DISCOVERED_EXPLOSIVES;
 		return this;
 	}
 
@@ -45,5 +49,12 @@ export class Stats {
 	public dig () {
 		this.dug++;
 		this.state = GameState.Mining;
+	}
+
+	public addExplosive () {
+		if (this.explosives === NOT_DISCOVERED_EXPLOSIVES)
+			this.explosives = 0;
+
+		this.explosives++;
 	}
 }

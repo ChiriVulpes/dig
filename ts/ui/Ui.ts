@@ -1,4 +1,4 @@
-import { GameState, Stats } from "../game/Stats";
+import { GameState, NOT_DISCOVERED_EXPLOSIVES, Stats } from "../game/Stats";
 import Canvas from "./Canvas";
 import { IMouseEventHandler } from "./Mouse";
 import { MutableText } from "./MutableText";
@@ -13,6 +13,7 @@ export class Ui implements IMouseEventHandler {
 			],
 		`SCORE: ${this.stats.score}`,
 		`DEPTH: ${this.stats.turn}`,
+		...this.stats.explosives === NOT_DISCOVERED_EXPLOSIVES ? [] : [`EXPLOSIVES: ${this.stats.explosives} (Right Click)`],
 	].join("\n"));
 
 	private title = new MutableText(() => "DIG DIG DIG")
@@ -26,14 +27,18 @@ export class Ui implements IMouseEventHandler {
 	}
 
 	public render (canvas: Canvas) {
+		let width: number;
+		let height: number;
+
 		switch (this.stats.state) {
 			case GameState.Mining:
 			case GameState.FellBehind:
-				this.score.render(canvas, 5, 5);
+				[width, height] = this.score.getLayout() ?? [0, 0];
+				this.score.render(canvas, 5, canvas.height - height - 2);
 				break;
 
 			case GameState.Surface:
-				let [width, height] = this.title.getLayout() ?? [0, 0];
+				[width, height] = this.title.getLayout() ?? [0, 0];
 				this.title.render(canvas,
 					canvas.width / 2 - width / 2,
 					canvas.height / 4 - height / 2 + Math.floor(Math.sin(this.stats.tick / 200) * 10));

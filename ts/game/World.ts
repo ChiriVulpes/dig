@@ -152,14 +152,17 @@ export default class World {
 		this.generateStructure(below, {
 			border: {
 				type: TileType.Metal,
-				decay: { type: TileType.Cavern, chance: Random.float(0.1) },
+				decay: [{ type: TileType.Cavern, chance: Random.float(0.1) }],
 			},
 			inside: {
 				type: TileType.Cavern,
-				decay: { type: TileType.Metal, chance: Random.float(0.1) },
+				decay: [
+					{ type: TileType.Metal, chance: Random.float(0.1) },
+					{ type: TileType.Explosives, chance: Random.float(0.1) },
+				],
 			},
-			width: Random.int(4, 10),
-			height: Random.int(3, 5),
+			width: Random.int(4, Maths.lerp(6, 12, this.stats.difficulty)),
+			height: Random.int(4, 6),
 		});
 	}
 
@@ -176,7 +179,7 @@ export default class World {
 
 		for (let yi = 0; yi < options.height; yi++) {
 			for (let xi = 0; xi < options.width; xi++) {
-				const isBorder = xi === 0 || yi === 0 || xi === options.height - 1 || yi === options.height - 1;
+				const isBorder = xi === 0 || yi === 0 || xi === options.width - 1 || yi === options.height - 1;
 				const generationOptions = options[isBorder ? "border" : "inside"];
 				if (generationOptions === undefined)
 					continue;
@@ -191,8 +194,9 @@ export default class World {
 		if (typeof options === "number")
 			return options;
 
-		if (Random.chance(options.decay?.chance ?? 0))
-			return this.resolveGenerationOptions(options.decay!);
+		for (const decay of options.decay ?? [])
+			if (Random.chance(decay?.chance ?? 0))
+				return this.resolveGenerationOptions(decay!);
 
 		return options.type;
 	}
@@ -209,7 +213,7 @@ type TileGenerationOptions = TileType | ITileGenerationOptions;
 
 interface ITileGenerationOptions {
 	type: TileType;
-	decay?: ITileDecayOptions;
+	decay?: ITileDecayOptions[];
 }
 
 interface ITileDecayOptions extends ITileGenerationOptions {

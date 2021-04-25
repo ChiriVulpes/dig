@@ -7,6 +7,7 @@ export enum SoundType {
 	Metal,
 	Gem,
 	BreakGem,
+	Explode,
 }
 
 const versionCount: Record<SoundType, number> = {
@@ -15,6 +16,7 @@ const versionCount: Record<SoundType, number> = {
 	[SoundType.Break]: 4,
 	[SoundType.Gem]: 4,
 	[SoundType.BreakGem]: 3,
+	[SoundType.Explode]: 1,
 };
 
 export default class Sound {

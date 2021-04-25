@@ -16,3 +16,7 @@ canvas {
 	height: calc(var(--height, auto) * 1px);
 	image-rendering: pixelated;
 }
+
+svg {
+	display: none;
+}

@@ -7,6 +7,13 @@ import Random from "../util/Random";
 import Sound, { SoundType } from "../util/Sound";
 import World from "./World";
 
+enum DamageType {
+	None,
+	Mining,
+	Explosion,
+	Invulnerable = Infinity,
+}
+
 export enum TileType {
 	Rock,
 	Metal,
@@ -14,6 +21,7 @@ export enum TileType {
 	Emerald,
 	Cavern,
 	Mineshaft,
+	Explosives,
 }
 
 export enum TileCategory {
@@ -22,10 +30,14 @@ export enum TileCategory {
 
 const LIGHT_MAX = 3;
 
-interface ITileDescription {
+type TileDescriptionMouseHandler = {
+	[E in keyof IMouseEventHandler]: (tile: Tile, ...params: Parameters<Exclude<IMouseEventHandler[E], undefined>>) => ReturnType<Exclude<IMouseEventHandler[E], undefined>>;
+};
+
+interface ITileDescription extends TileDescriptionMouseHandler {
 	hitSound?: SoundType;
 	breakSound?: SoundType;
-	invulnerable?: true;
+	breakable?: DamageType;
 	nonselectable?: true;
 	mask?: string;
 	base?: TileType;
@@ -34,21 +46,24 @@ interface ITileDescription {
 	background?: TileType;
 	light?: number;
 	score?: number;
-	update?(tile: Tile): any;
+	update?(tile: Tile): false | void;
+	damage?(tile: Tile, damageType: DamageType, amount: number): false | void;
 }
 
 const tiles: Record<TileType, ITileDescription> = {
 	[TileType.Metal]: {
 		hitSound: SoundType.Metal,
-		invulnerable: true,
+		breakable: DamageType.Explosion,
 	},
 	[TileType.Rock]: {
 		hitSound: SoundType.Hit,
 		mask: "rock",
 		background: TileType.Rock,
+		breakable: DamageType.Mining,
 	},
 	[TileType.Grass]: {
 		mask: "rock",
+		breakable: DamageType.Mining,
 	},
 	[TileType.Emerald]: {
 		base: TileType.Rock,
@@ -62,23 +77,69 @@ const tiles: Record<TileType, ITileDescription> = {
 		nonselectable: true,
 		background: TileType.Rock,
 		light: LIGHT_MAX + 1,
+		onMouseRightClick (tile: Tile) {
+			if (tile.context.world.stats.explosives <= 0)
+				return;
+
+			tile.context.world.stats.explosives--;
+			tile.context.world.setTile(tile.context.x, tile.context.y, TileType.Explosives);
+		},
 	},
 	[TileType.Cavern]: {
 		invisible: true,
 		nonselectable: true,
+		background: TileType.Rock,
 		update (tile: Tile) {
 			if (tile.getLight() === LIGHT_MAX)
 				tile.remove(true);
 		},
-	}
+	},
+	[TileType.Explosives]: {
+		background: TileType.Rock,
+		onMouseClick (tile: Tile) {
+			if (!tile.isAccessible())
+				return;
+
+			tile.context.world.stats.addExplosive();
+			tile.remove(true);
+		},
+		onMouseRightClick (tile: Tile) {
+			if (!tile.isAccessible())
+				return;
+
+			explodeExplosives(tile);
+		},
+		damage (tile: Tile, damageType: DamageType) {
+			if (damageType === DamageType.Explosion)
+				explodeExplosives(tile);
+		},
+	},
 };
 
-function getProperty<P extends keyof ITileDescription> (type: TileType, property: P): ITileDescription[P] {
+function explodeExplosives (tile: Tile) {
+	tile.remove(true);
+	Sound.get(SoundType.Explode).play();
+
+	const range = Random.int(4, Random.int(5, Random.int(6, 8))); // use multiple calls to weight smaller explosions higher
+	for (let y = -range + 1; y < range; y++) {
+		const absY = Math.abs(y);
+		for (let x = -range + 1; x < range; x++) {
+			const damage = Math.max(0, range - (Math.abs(x) + absY));
+			if (damage)
+				tile.context.world.getTile(tile.context.x + x, tile.context.y + y)
+					?.damage(DamageType.Explosion, damage * 2, false);
+		}
+	}
+}
+
+function getProperty<P extends keyof ITileDescription> (type: TileType, property: P): ITileDescription[P];
+function getProperty<P extends keyof ITileDescription> (type: TileType, property: P, orElse?: Exclude<ITileDescription[P], undefined>): Exclude<ITileDescription[P], undefined>;
+function getProperty<P extends keyof ITileDescription> (type: TileType, property: P, orElse?: Exclude<ITileDescription[P], undefined>): ITileDescription[P] {
 	let description = tiles[type];
 	if (description[property] === undefined && description.base !== undefined)
 		return getProperty(description.base, property);
 
-	return description[property];
+	return description[property] ?? orElse;
 }
 
 export interface ITileContext {
@@ -225,18 +286,67 @@ export default class Tile implements IMouseEventHandler {
 	}
 
 	public isMineable () {
-		return this.isAccessible() && !tiles[this.type].invulnerable;
+		return this.isAccessible() && DamageType.Mining >= getProperty(this.type, "breakable", DamageType.Invulnerable);
 	}
 
 	public onMouseEnter () {
 		this.hovering = true;
+		this.handleEvent("onMouseEnter");
 	}
 
 	public onMouseLeave () {
 		this.hovering = false;
+		this.handleEvent("onMouseLeave");
 	}
 
-	public onMouseHold () {
+	public onMouseClick (x: number, y: number) {
+		this.handleEvent("onMouseClick", x, y);
+	}
+
+	public onMouseRightClick (x: number, y: number) {
+		this.handleEvent("onMouseRightClick", x, y);
+	}
+
+	public onMouseDown (x: number, y: number) {
+		this.handleEvent("onMouseDown", x, y);
+	}
+
+	public onMouseUp (x: number, y: number) {
+		this.handleEvent("onMouseUp", x, y);
+	}
+
+	public damage (damageType: DamageType, amount = 1, sound = true) {
+		getProperty(this.type, "damage")?.(this, damageType, amount);
+
+		if (damageType >= getProperty(this.type, "breakable", DamageType.Invulnerable)) {
+			this.durability -= amount;
+			if (this.durability < 0) {
+				this.break(damageType, sound);
+				return;
+			}
+
+			this.breakAnim++;
+		}
+
+		if (sound)
+			Sound.get(getProperty(this.type, "hitSound"))?.play();
+	}
+
+	public break (damageType: DamageType, sound = true) {
+		this.context.world.removeTile(this.context.x, this.context.y, true);
+
+		this.context.world.stats.score += tiles[this.type].score ?? 0;
+		if (damageType === DamageType.Mining)
+			this.context.world.stats.dig();
+
+		if (sound)
+			Sound.get(getProperty(this.type, "breakSound") ?? SoundType.Break).play();
+	}
+
+	public onMouseHold (x: number, y: number) {
+		if (this.handleEvent("onMouseHold", x, y) === false)
+			return;
+
 		if (!this.hovering || !this.isAccessible())
 			return;
 
@@ -244,19 +354,10 @@ export default class Tile implements IMouseEventHandler {
 			return;
 
 		this.context.world.stats.exhaustion = 10;
+		this.damage(DamageType.Mining);
+	}
 
-		if (!getProperty(this.type, "invulnerable")) {
-			if (--this.durability < 0 && this.context) {
-				this.context.world.removeTile(this.context.x, this.context.y, true);
-				Sound.get(getProperty(this.type, "breakSound") ?? SoundType.Break).play();
-				this.context.world.stats.dig();
-				this.context.world.stats.score += tiles[this.type].score ?? 0;
-				return;
-			}
-
-			this.breakAnim++;
-		}
-
-		Sound.get(getProperty(this.type, "hitSound"))?.play();
+	private handleEvent (event: keyof IMouseEventHandler, x?: number, y?: number) {
+		return tiles[this.type][event]?.(this, x!, y!);
 	}
 }
