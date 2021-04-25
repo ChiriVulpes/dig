@@ -65,6 +65,7 @@ const tiles: Record<TileType, ITileDescription> = {
 		breakable: DamageType.Mining,
 	},
 	[TileType.Grass]: {
+		hitSound: SoundType.Hit,
 		mask: "rock",
 		breakable: DamageType.Mining,
 	},
