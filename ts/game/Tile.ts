@@ -212,7 +212,7 @@ export default class Tile implements IMouseEventHandler {
 		if (this.breakAnim)
 			Sprite.get(`tile/break/${this.breakAnim}`).render(canvas, x, y);
 
-		if (this.hovering)
+		if (this.hovering && this.isAccessible())
 			Sprite.get("ui/hover").render(canvas, x, y);
 	}
 
@@ -229,8 +229,7 @@ export default class Tile implements IMouseEventHandler {
 	}
 
 	public onMouseEnter () {
-		if (this.isAccessible())
-			this.hovering = true;
+		this.hovering = true;
 	}
 
 	public onMouseLeave () {
@@ -238,7 +237,7 @@ export default class Tile implements IMouseEventHandler {
 	}
 
 	public onMouseHold () {
-		if (!this.hovering)
+		if (!this.hovering || !this.isAccessible())
 			return;
 
 		if (this.context.world.stats.exhaustion)
