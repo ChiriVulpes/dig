@@ -169,7 +169,7 @@ export default class Tile implements IHasMouseEventHandlers {
 	public static render (type: TileType, canvas: Canvas, x: number, y: number, light?: number, mask?: Direction, tile?: Tile) {
 		const description = tiles[type];
 
-		if (description.invisible && description.background === undefined)
+		if (description.invisible && description.background === undefined || light === 0)
 			return;
 
 		if (light !== undefined && light < LIGHT_MAX)
@@ -220,8 +220,12 @@ export default class Tile implements IHasMouseEventHandlers {
 		tiles[this.type].update?.(this);
 	}
 
+	public isAccessible () {
+		return this.light === LIGHT_MAX && !tiles[this.type].nonselectable;
+	}
+
 	public onMouseEnter () {
-		if (this.light === LIGHT_MAX && !tiles[this.type].nonselectable)
+		if (this.isAccessible())
 			this.hovering = true;
 	}
 

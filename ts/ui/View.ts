@@ -25,13 +25,14 @@ export class View {
 	public update (world: World, stats: Stats, mouse: Mouse) {
 		this.step++;
 
-		if (this.step > 0 && stats.dug > this.y / TILE)
+		const bottomRow = this.getBottomVisibleRowY();
+		if (this.step > 0 && (stats.dug > this.y / TILE || world.tiles[bottomRow].some(tile => tile.isAccessible())))
 			this.step = -32;
 
 		if (this.step <= 0 && this.step % 2) {
 			this.y++;
 			mouse.updatePosition();
-			world.generateFor(this.getBottomVisibleRowY() + 1);
+			world.generateFor(bottomRow + 1);
 
 			if (this.y % 16 === 0)
 				stats.turn++;

@@ -26,6 +26,10 @@ namespace Random {
 	}
 
 	export function chance (chance: number) {
+		if (chance <= 0)
+			return false;
+		if (chance >= 1)
+			return true;
 		return Math.random() <= chance;
 	}
 }

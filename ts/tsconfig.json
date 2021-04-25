@@ -5,7 +5,7 @@
 		"target": "ES2019",
 		"module": "AMD",
 		"outFile": "../js/index.js",
-		// "inlineSourceMap": true,
+		"inlineSourceMap": true,
 		"noImplicitOverride": true
 	},
 	"include": ["**/*"]

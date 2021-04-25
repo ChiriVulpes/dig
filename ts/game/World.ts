@@ -58,30 +58,23 @@ export default class World {
 			this.setTile(x, y, tileType);
 	}
 
-	public generateRows (rows = Random.int(1, 5)) {
+	public generateRows (rows = Random.int(5, 20)) {
 		for (let i = 0; i < rows; i++)
 			this.generateRow(TileType.Rock);
 
-		if (rows >= 3 && Random.chance(0.5)) {
-			const width = Random.int(4, 10);
-			const startX = Random.int(1 - width, TILES);
-			const structureType = Random.chance(0.3) ? TileType.Cavern : TileType.Metal;
-			for (let y = this.tiles.length - rows; y < this.tiles.length; y++)
-				for (let x = Math.max(0, startX); x < Math.min(startX + width, TILES); x++)
-					this.setTile(x, y, structureType);
-		}
+		const below = this.tiles.length - rows;
 
-		while (Random.chance(0.1)) {
+		while (Random.chance(0.4))
+			this.generateMetalRemains(below);
+
+		while (Random.chance(0.5))
+			this.generateCave(below);
+
+		while (Random.chance(0.6)) {
 			const size = Random.int(1, 4);
 			let x = Random.int(0, TILES);
 			let y = Random.int(this.tiles.length - rows, this.tiles.length);
-			const oreType = TileType.Emerald;
-			for (let i = 0; i < size; i++) {
-				if (this.getTile(x, y)?.type === TileType.Rock)
-					this.setTile(x, y, oreType);
-
-				[x, y] = Directions.move(x, y, Random.choice(...Directions.CARDINALS));
-			}
+			this.generateVeinAt(TileType.Emerald, size, x, y, TileType.Rock);
 		}
 
 		while (this.tiles.length - this.first > TILES * 2)
@@ -100,4 +93,92 @@ export default class World {
 		for (const direction of Directions.CARDINALS)
 			this.getTileInDirection(direction, x, y)?.invalidate();
 	}
+
+	private generateCave (below: number) {
+		this.generateVeinBelow(TileType.Cavern, Random.int(10, 30), below, TileType.Rock);
+	}
+
+	private generateVeinBelow (type: TileType, size: number, below: number, replace?: TileType) {
+		this.generateVeinAt(type,
+			size,
+			Random.int(TILES),
+			Random.int(below, this.tiles.length),
+			replace);
+	}
+
+	private generateVeinAt (type: TileType, size: number, x: number, y: number, replace?: TileType) {
+		for (let i = 0; i < size; i++) {
+			if (replace === undefined || this.getTile(x, y)?.type === replace)
+				this.setTile(x, y, type);
+
+			[x, y] = Directions.move(x, y, Random.choice(...Directions.CARDINALS));
+		}
+	}
+
+	private generateMetalRemains (below: number) {
+		this.generateStructure(below, {
+			border: {
+				type: TileType.Metal,
+				decay: { type: TileType.Cavern, chance: Random.float(0.1) },
+			},
+			inside: {
+				type: TileType.Cavern,
+				decay: { type: TileType.Metal, chance: Random.float(0.1) },
+			},
+			width: Random.int(4, 10),
+			height: Random.int(3, 5),
+		});
+	}
+
+	private generateStructure (below: number, options: IStructureGenerationOptions) {
+		if (options.border === undefined && options.inside === undefined)
+			return; // nothing to generate
+
+		const maxY = this.tiles.length - options.height;
+		if (maxY <= below)
+			return;
+
+		let x = Random.int(TILES);
+		let y = Random.int(below, maxY);
+
+		for (let yi = 0; yi < options.height; yi++) {
+			for (let xi = 0; xi < options.width; xi++) {
+				const isBorder = xi === 0 || yi === 0 || xi === options.height - 1 || yi === options.height - 1;
+				const generationOptions = options[isBorder ? "border" : "inside"];
+				if (generationOptions === undefined)
+					continue;
+
+				const generate = this.resolveGenerationOptions(generationOptions);
+				this.setTile(x + xi, y + yi, generate);
+			}
+		}
+	}
+
+	private resolveGenerationOptions (options: TileGenerationOptions): TileType {
+		if (typeof options === "number")
+			return options;
+
+		if (Random.chance(options.decay?.chance ?? 0))
+			return this.resolveGenerationOptions(options.decay!);
+
+		return options.type;
+	}
+}
+
+interface IStructureGenerationOptions {
+	border?: TileGenerationOptions;
+	inside?: TileGenerationOptions;
+	width: number;
+	height: number;
+}
+
+type TileGenerationOptions = TileType | ITileGenerationOptions;
+
+interface ITileGenerationOptions {
+	type: TileType;
+	decay?: ITileDecayOptions;
+}
+
+interface ITileDecayOptions extends ITileGenerationOptions {
+	chance: number;
 }
