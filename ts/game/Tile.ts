@@ -33,6 +33,7 @@ interface ITileDescription {
 	invisible?: true;
 	background?: TileType;
 	light?: number;
+	score?: number;
 	update?(tile: Tile): any;
 }
 
@@ -54,6 +55,7 @@ const tiles: Record<TileType, ITileDescription> = {
 		category: TileCategory.Ore,
 		hitSound: SoundType.Gem,
 		breakSound: SoundType.BreakGem,
+		score: 100,
 	},
 	[TileType.Mineshaft]: {
 		invisible: true,
@@ -244,6 +246,7 @@ export default class Tile implements IHasMouseEventHandlers {
 				this.context.world.removeTile(this.context.x, this.context.y, true);
 				Sound.get(getProperty(this.type, "breakSound") ?? SoundType.Break).play();
 				this.context.world.stats.dug++;
+				this.context.world.stats.score += tiles[this.type].score ?? 10;
 				return;
 			}
 

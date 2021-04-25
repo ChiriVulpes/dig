@@ -13,11 +13,19 @@ export default class Sprite {
 
 	public image?: HTMLImageElement;
 	public pattern?: CanvasPattern;
+	public loaded: Promise<void>;
 
 	public constructor (public readonly name: string) {
 		const image = document.createElement("img");
+
+		this.loaded = new Promise<void>(resolve => {
+			image.addEventListener("load", () => {
+				this.image = image;
+				resolve();
+			});
+		});
+
 		image.src = `sprite/${name}.png`;
-		image.addEventListener("load", () => this.image = image);
 	}
 
 	public render (canvas: Canvas, x: number, y: number): void;

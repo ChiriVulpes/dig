@@ -3,6 +3,7 @@ export class Stats {
 	public turn!: number;
 	public tick!: number;
 	public exhaustion!: number;
+	public score!: number;
 
 	public constructor () {
 		this.reset();
@@ -13,6 +14,7 @@ export class Stats {
 		this.turn = 0;
 		this.tick = 0;
 		this.exhaustion = 0;
+		this.score = 0;
 		return this;
 	}
 

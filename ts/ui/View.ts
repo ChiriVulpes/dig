@@ -25,17 +25,17 @@ export class View {
 	public update (world: World, stats: Stats, mouse: Mouse) {
 		this.step++;
 
+		if (this.step > 0 && stats.dug > this.y / TILE)
+			this.step = -32;
+
 		if (this.step <= 0 && this.step % 2) {
 			this.y++;
 			mouse.updatePosition();
 			world.generateFor(this.getBottomVisibleRowY() + 1);
+
+			if (this.y % 16 === 0)
+				stats.turn++;
 		}
-
-		if (this.y % 16)
-			stats.turn++;
-
-		if (this.step && stats.dug > this.y / TILE)
-			this.step = -32;
 	}
 
 	public render (world: World, canvas: Canvas) {

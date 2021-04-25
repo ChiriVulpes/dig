@@ -3,6 +3,7 @@ import { Stats } from "./game/Stats";
 import World from "./game/World";
 import Canvas from "./ui/Canvas";
 import { Mouse } from "./ui/Mouse";
+import { Ui } from "./ui/Ui";
 import { View } from "./ui/View";
 import Sound from "./util/Sound";
 
@@ -33,6 +34,7 @@ function setCanvasSize () {
 }
 
 setCanvasSize();
+setTimeout(setCanvasSize, 200);
 window.addEventListener("resize", setCanvasSize);
 
 
@@ -40,6 +42,9 @@ export const mouse = new Mouse()
 	.setWorld(world)
 	.setView(view)
 	.setCanvas(canvas);
+
+
+export const ui = new Ui(stats, mouse);
 
 
 ////////////////////////////////////
@@ -62,6 +67,7 @@ function update () {
 function render () {
 	canvas.clear();
 	view.render(world, canvas);
+	ui.render(canvas);
 }
 
 update();

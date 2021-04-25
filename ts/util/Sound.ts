@@ -12,7 +12,7 @@ export enum SoundType {
 const versionCount: Record<SoundType, number> = {
 	[SoundType.Hit]: 5,
 	[SoundType.Metal]: 4,
-	[SoundType.Break]: 1,
+	[SoundType.Break]: 4,
 	[SoundType.Gem]: 4,
 	[SoundType.BreakGem]: 3,
 };

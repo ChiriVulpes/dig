@@ -56,7 +56,7 @@ export default class Canvas {
 		delete this.offset;
 	}
 
-	public render (canvas: Canvas) {
-		canvas.context.drawImage(this.element, 0, 0);
+	public render (canvas: Canvas, x = 0, y = 0) {
+		canvas.context.drawImage(this.element, x, y);
 	}
 }
