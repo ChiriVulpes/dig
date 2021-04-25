@@ -15,6 +15,14 @@ export default class Sprite {
 	public pattern?: CanvasPattern;
 	public loaded: Promise<void>;
 
+	public get width () {
+		return this.image?.width ?? 0;
+	}
+
+	public get height () {
+		return this.image?.height ?? 0;
+	}
+
 	public constructor (public readonly name: string) {
 		const image = document.createElement("img");
 

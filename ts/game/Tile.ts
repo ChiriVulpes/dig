@@ -325,32 +325,43 @@ export default class Tile implements IMouseEventHandler {
 		this.handleEvent("onMouseUp", x, y);
 	}
 
-	public damage (damageType: DamageType, amount = 1, sound = true) {
+	public damage (damageType: DamageType, amount = 1, effects = true) {
 		getProperty(this.type, "damage")?.(this, damageType, amount);
 
 		if (damageType >= getProperty(this.type, "breakable", DamageType.Invulnerable)) {
 			this.durability -= amount;
 			if (this.durability < 0) {
-				this.break(damageType, sound);
+				this.break(damageType, effects);
 				return;
 			}
 
 			this.breakAnim++;
 		}
 
-		if (sound)
+		if (effects) {
 			Sound.get(getProperty(this.type, "hitSound"))?.play();
+			this.particles(2);
+		}
 	}
 
-	public break (damageType: DamageType, sound = true) {
+	public break (damageType: DamageType, effects = true) {
 		this.context.world.removeTile(this.context.x, this.context.y, true);
 
 		this.context.world.stats.score += tiles[this.type].score ?? 0;
 		if (damageType === DamageType.Mining)
 			this.context.world.stats.dig();
 
-		if (sound)
+		if (effects) {
 			Sound.get(getProperty(this.type, "breakSound") ?? SoundType.Break).play();
+			this.particles(16);
+		}
+	}
+
+	public particles (amount: number) {
+		this.context.world.particles.create(Tile.getSprite(this.type),
+			this.context.x * TILE + TILE / 2,
+			this.context.y * TILE + TILE / 2,
+			amount);
 	}
 
 	public onMouseHold (x: number, y: number) {

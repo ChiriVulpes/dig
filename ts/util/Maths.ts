@@ -7,6 +7,10 @@ namespace Maths {
 		return lerped === from ? 0 : lerped === to ? 1
 			: (lerped - from) / (to - from);
 	}
+
+	export function direction (direction: number, distance = 1) {
+		return [distance * Math.cos(direction), distance * Math.sin(direction)];
+	}
 }
 
 export default Maths;

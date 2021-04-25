@@ -1,4 +1,5 @@
 import { TILES } from "../Constants";
+import { Particles } from "../ui/Particles";
 import Direction, { Directions } from "../util/Direction";
 import Maths from "../util/Maths";
 import Random from "../util/Random";
@@ -11,9 +12,14 @@ export default class World {
 	private first!: number;
 	public readonly tiles: Tile[][] = [];
 	private readonly mineshaft: (boolean | undefined)[] = [];
+	public particles!: Particles;
 
 	public constructor (public readonly stats: Stats) {
 		this.generateNewWorld();
+	}
+
+	public setParticles (particles: Particles) {
+		this.particles = particles;
 	}
 
 	public setTile (x: number, y: number, type: TileType) {

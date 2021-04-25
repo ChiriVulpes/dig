@@ -3,6 +3,7 @@ import { Stats } from "./game/Stats";
 import World from "./game/World";
 import Canvas from "./ui/Canvas";
 import { Mouse } from "./ui/Mouse";
+import { Particles } from "./ui/Particles";
 import { Ui } from "./ui/Ui";
 import { View } from "./ui/View";
 import Sound from "./util/Sound";
@@ -22,6 +23,9 @@ export const view = new View();
 //
 
 Sound.preload();
+
+export const particles = new Particles();
+world.setParticles(particles);
 
 
 export const canvas = new Canvas().setSize(TILE * TILES, TILE * TILES).appendTo(document.body);
@@ -59,6 +63,7 @@ function update () {
 	stats.update();
 	mouse.update();
 	world.update();
+	particles.update();
 	view.update(world, stats, mouse);
 
 
@@ -68,6 +73,7 @@ function update () {
 function render () {
 	canvas.clear();
 	view.render(world, canvas);
+	particles.render(canvas, view);
 	ui.render(canvas);
 }
 
