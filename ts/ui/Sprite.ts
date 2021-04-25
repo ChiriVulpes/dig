@@ -31,16 +31,4 @@ export default class Sprite {
 		else
 			canvas.context.drawImage(this.image, sx, sy!, w!, h!, x, y, w!, h!);
 	}
-
-	public renderTiled (canvas: Canvas, x: number, y: number) {
-		if (!this.image)
-			return;
-
-		if (!this.pattern)
-			this.pattern = canvas.context.createPattern(this.image, "repeat")!;
-
-		this.pattern.setTransform(new DOMMatrix().translate(x, y));
-		canvas.context.fillStyle = this.pattern;
-		canvas.context.fillRect(x, y, canvas.width, canvas.height);
-	}
 }

@@ -1,5 +1,9 @@
 namespace Random {
 
+	export function choice<A extends any[]> (...choices: A): A[number] {
+		return choices.length === 0 ? undefined : choices[int(choices.length)];
+	}
+
 	export function int (max: number): number;
 	export function int (min: number, max: number): number;
 	export function int (min: number, max?: number) {

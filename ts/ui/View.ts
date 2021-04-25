@@ -5,12 +5,10 @@ import Canvas from "./Canvas";
 import { Mouse } from "./Mouse";
 import Sprite from "./Sprite";
 
-const SURFACE_TILES = 20;
+// const SURFACE_TILES = 20;
 
 export class View {
 	public y = 0;
-
-	private canvas?: Canvas;
 
 	public constructor () {
 	}
@@ -41,23 +39,18 @@ export class View {
 	}
 
 	public render (world: World, canvas: Canvas) {
-		Sprite.get("background/surface").render(canvas, 0, -this.y);
-		Sprite.get("background/rock").renderTiled(canvas, 0, -this.y + SURFACE_TILES * TILE);
-
-		if (!this.canvas)
-			this.canvas = new Canvas().setSize(TILE * TILES, TILE * TILES);
-
-		this.canvas.clear();
 		const topY = this.getTopVisibleRowY();
 		const bottomY = this.getBottomVisibleRowY();
 
 		for (let y = topY; y <= bottomY; y++) {
 			for (let x = 0; x < TILES; x++) {
 				const tile = world.getTile(x, y);
-				tile?.render(this.canvas, x * TILE, y * TILE - this.y);
+				tile?.render(canvas, x * TILE, y * TILE - this.y);
 			}
 		}
 
-		this.canvas.render(canvas);
+		canvas.context.globalCompositeOperation = "destination-over";
+		Sprite.get("background/surface").render(canvas, 0, -this.y);
+		canvas.context.globalCompositeOperation = "source-over";
 	}
 }

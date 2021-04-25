@@ -50,8 +50,9 @@ export const mouse = new Mouse()
 function update () {
 	requestAnimationFrame(update);
 
-	stats.tick++;
+	stats.update();
 	mouse.update();
+	world.update();
 	view.update(world, stats, mouse);
 
 

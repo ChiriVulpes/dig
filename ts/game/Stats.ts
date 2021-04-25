@@ -2,6 +2,7 @@ export class Stats {
 	public dug!: number;
 	public turn!: number;
 	public tick!: number;
+	public exhaustion!: number;
 
 	public constructor () {
 		this.reset();
@@ -11,6 +12,14 @@ export class Stats {
 		this.dug = 0;
 		this.turn = 0;
 		this.tick = 0;
+		this.exhaustion = 0;
 		return this;
+	}
+
+	public update () {
+		this.tick++;
+
+		if (this.exhaustion)
+			this.exhaustion--;
 	}
 }
