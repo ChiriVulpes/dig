@@ -6,6 +6,8 @@ export enum GameState {
 
 export const NOT_DISCOVERED_EXPLOSIVES = -1;
 
+const LOCAL_STORAGE_KEY_SCORES = "scores";
+
 export class Stats {
 	public dug!: number;
 	public turn!: number;
@@ -14,9 +16,14 @@ export class Stats {
 	public score!: number;
 	public state!: GameState;
 	public explosives!: number;
+	public scores = JSON.parse(localStorage.getItem(LOCAL_STORAGE_KEY_SCORES) ?? "[]") as number[];
 
 	public get difficulty () {
 		return this.turn / 1000;
+	}
+
+	public get highscore () {
+		return Math.max(0, ...this.scores);
 	}
 
 	public constructor () {
@@ -56,5 +63,11 @@ export class Stats {
 			this.explosives = 0;
 
 		this.explosives++;
+	}
+
+	public endGame () {
+		this.state = GameState.FellBehind;
+		this.scores.push(this.score);
+		localStorage.setItem(LOCAL_STORAGE_KEY_SCORES, JSON.stringify(this.scores));
 	}
 }

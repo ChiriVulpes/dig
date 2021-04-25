@@ -67,7 +67,7 @@ export class View {
 			}
 
 		if (!hasMineshaft && stats.state === GameState.Mining) {
-			stats.state = GameState.FellBehind;
+			stats.endGame();
 			this.step = -300;
 		}
 	}

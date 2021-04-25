@@ -45,6 +45,11 @@ export class MutableText {
 			|| this.scale !== this.text?.scale;
 
 		if (shouldRefresh) {
+			if (!text.length) {
+				delete this.text;
+				return;
+			}
+
 			const newText = new Text(text, this.color, this.maxWidth, this.scale);
 			newText.waitForRendered().then(() => this.text = newText);
 		}
