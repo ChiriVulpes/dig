@@ -46,6 +46,7 @@ interface ITileDescription extends TileDescriptionMouseHandler {
 	background?: TileType;
 	light?: number;
 	score?: number;
+	separated?: true;
 	update?(tile: Tile): false | void;
 	damage?(tile: Tile, damageType: DamageType, amount: number): false | void;
 }
@@ -96,6 +97,7 @@ const tiles: Record<TileType, ITileDescription> = {
 	},
 	[TileType.Explosives]: {
 		background: TileType.Rock,
+		separated: true,
 		onMouseClick (tile: Tile) {
 			if (!tile.isAccessible())
 				return;
@@ -192,7 +194,7 @@ export default class Tile implements IMouseEventHandler {
 
 		for (const direction of Directions.CARDINALS) {
 			const tile = this.context.world.getTileInDirection(direction, this.context);
-			if (!tile || tile.description.invisible)
+			if (!tile || tile.description.invisible || tile.description.separated)
 				this.mask |= direction;
 		}
 	}
