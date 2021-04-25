@@ -12,11 +12,12 @@ export class Ui implements IMouseEventHandler {
 			...this.stats.state !== GameState.FellBehind ? []
 				: [
 					"GAME OVER!",
-					"Click anywhere to play again",
+					"Click anywhere to play again\n",
 				],
 			`SCORE: ${this.stats.score}`,
 			`DEPTH: ${this.stats.turn}`,
-			...this.stats.explosives === NOT_DISCOVERED_EXPLOSIVES ? [] : [`EXPLOSIVES: ${this.stats.explosives} (Right Click)`],
+			...this.stats.explosives === NOT_DISCOVERED_EXPLOSIVES || this.stats.state === GameState.FellBehind ? []
+				: [`EXPLOSIVES: ${this.stats.explosives} (Right Click)`],
 		],
 	].join("\n"));
 
