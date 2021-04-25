@@ -1,4 +1,4 @@
-import { GameState, NOT_DISCOVERED_EXPLOSIVES, Stats } from "../game/Stats";
+import { GameState, NOT_DISCOVERED, Stats } from "../game/Stats";
 import Canvas from "./Canvas";
 import { IMouseEventHandler } from "./Mouse";
 import { MutableText } from "./MutableText";
@@ -7,13 +7,19 @@ export class Ui implements IMouseEventHandler {
 
 	private score = new MutableText(() => [
 		...this.stats.state === GameState.Surface ? [
-			...!this.stats.highscore ? [] : [`HIGH SCORE: ${this.stats.highscore}`],
+			...!this.stats.highscore ? [] : [`Highest stock value: $${this.stats.highscore}`],
 		] : [
-			`SCORE: ${this.stats.score}`,
-			`DEPTH: ${this.stats.turn}`,
-			...this.stats.explosives === NOT_DISCOVERED_EXPLOSIVES || this.stats.state === GameState.FellBehind ? []
-				: [`EXPLOSIVES: ${this.stats.explosives} (Right Click)`],
+			...this.stats.turn * 10 === this.stats.score ? [] : [`Stock value: $${this.stats.score}`],
+			`Mined depth: ${this.stats.turn}`,
 		],
+	].join("\n"));
+
+	private abilities = new MutableText(() => [
+		"ABILITIES: Right Click",
+		...!this.stats.discoveredAssays ? []
+			: [`Assay cost: $${this.stats.assayCost}`],
+		...this.stats.explosives === NOT_DISCOVERED ? []
+			: [`Explosives: Have ${this.stats.explosives}`],
 	].join("\n"));
 
 	private title = new MutableText(() =>
@@ -59,6 +65,11 @@ export class Ui implements IMouseEventHandler {
 
 		[width, height] = this.score.getLayout() ?? [0, 0];
 		this.score.render(canvas, 5, canvas.height - height - 2);
+
+		if (this.stats.state === GameState.Mining && this.stats.explosives !== NOT_DISCOVERED || this.stats.discoveredAssays) {
+			[width, height] = this.abilities.getLayout() ?? [0, 0];
+			this.abilities.render(canvas, canvas.width - width - 5, canvas.height - height - 2);
+		}
 	}
 
 	public onMouseDown () {

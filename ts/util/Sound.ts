@@ -10,6 +10,7 @@ export enum SoundType {
 	Explode,
 	Unequip,
 	Equip,
+	Assay,
 }
 
 const versionCount: Record<SoundType, number> = {
@@ -21,6 +22,7 @@ const versionCount: Record<SoundType, number> = {
 	[SoundType.Explode]: 4,
 	[SoundType.Unequip]: 4,
 	[SoundType.Equip]: 4,
+	[SoundType.Assay]: 1,
 };
 
 export default class Sound {

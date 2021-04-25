@@ -5,7 +5,7 @@ import Canvas from "./Canvas";
 import { Mouse } from "./Mouse";
 import Sprite from "./Sprite";
 
-const VIEW_PADDING_TILES = 3;
+const VIEW_PADDING_TILES = 4;
 
 export class View {
 	public y = 0;

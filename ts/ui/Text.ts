@@ -15,6 +15,7 @@ enum FontSprite {
 	Exclamation,
 	Colon,
 	Parentheses,
+	Currency
 }
 
 interface IFontSpriteCharacterRange {
@@ -33,6 +34,7 @@ const fontSpriteDefinitions: Record<FontSprite, FontSpriteDefinition> = {
 	[FontSprite.Comma]: ",".charCodeAt(0),
 	[FontSprite.Exclamation]: "!".charCodeAt(0),
 	[FontSprite.Colon]: ":".charCodeAt(0),
+	[FontSprite.Currency]: "$".charCodeAt(0),
 };
 
 const characterWidthExceptions: Partial<Record<string, number>> = {

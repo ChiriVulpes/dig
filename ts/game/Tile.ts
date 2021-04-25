@@ -178,6 +178,7 @@ export default class Tile implements IMouseEventHandler {
 	private mask?: Direction;
 	private light?: number;
 	private recalcLightTick: number | undefined = -1;
+	private revealed?: boolean;
 
 	public constructor (public readonly type: TileType, world: World, x: number, y: number) {
 		this.context = { world, x, y };
@@ -249,7 +250,7 @@ export default class Tile implements IMouseEventHandler {
 	public static render (tile: Tile, type: TileType, canvas: Canvas, x: number, y: number, light?: number, mask?: Direction) {
 		const description = tiles[type];
 
-		if ((light ?? Infinity) <= 0 && tile.context.world.stats.state === GameState.FellBehind)
+		if ((light ?? Infinity) <= 0 && (tile.context.world.stats.state === GameState.FellBehind || tile.revealed))
 			light = 1;
 
 		if (description.invisible && description.background === undefined || light === 0)
@@ -327,6 +328,33 @@ export default class Tile implements IMouseEventHandler {
 
 	public onMouseRightClick (x: number, y: number) {
 		this.handleEvent("onMouseRightClick", x, y);
+
+		if ((this.getLight() ?? 0) > 0 || this.context.world.stats.score < this.context.world.stats.assayCost)
+			return;
+
+
+		// perform assay
+		let revealedAny = false;
+		const range = 6;
+		for (let y = -range + 1; y < range; y++) {
+			const absY = Math.abs(y);
+			for (let x = -range + 1; x < range; x++) {
+				const value = Math.max(0, range - (Math.abs(x) + absY));
+				if (value <= 0)
+					continue;
+
+				const tile = this.context.world.getTile(this.context.x + x, this.context.y + y);
+				if (tile && !tile.revealed) {
+					tile.revealed = true;
+					revealedAny = true;
+				}
+			}
+		}
+
+		if (revealedAny) {
+			this.context.world.stats.score -= this.context.world.stats.assayCost;
+			Sound.get(SoundType.Assay).play();
+		}
 	}
 
 	public onMouseDown (x: number, y: number) {
