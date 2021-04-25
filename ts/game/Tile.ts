@@ -243,7 +243,7 @@ export default class Tile implements IMouseEventHandler {
 
 	public static getSprite (type: TileType) {
 		const description = tiles[type];
-		const category = description.category === undefined ? "" : `/${TileCategory[description.category]}`;
+		const category = description.category === undefined ? "" : `/${TileCategory[description.category].toLowerCase()}`;
 		return Sprite.get(`tile${category}/${TileType[type].toLowerCase()}`);
 	}
 
