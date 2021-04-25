@@ -52,7 +52,7 @@ export class Particles {
 
 	public render (canvas: Canvas, view: View) {
 		for (const particle of this.particles)
-			particle.sprite.render(canvas, particle.x, particle.y - view.y,
+			particle.sprite.render(canvas, Math.floor(particle.x), Math.floor(particle.y) - view.y,
 				Math.floor(particle.sprite.width * particle.xo), Math.floor(particle.sprite.height * particle.yo),
 				particle.sprite.width / 4, particle.sprite.height / 4);
 	}

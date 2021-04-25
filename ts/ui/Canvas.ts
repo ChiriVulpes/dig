@@ -12,6 +12,7 @@ export default class Canvas {
 	}
 
 	public constructor () {
+		this.context.imageSmoothingEnabled = false;
 	}
 
 	public appendTo (element: HTMLElement) {

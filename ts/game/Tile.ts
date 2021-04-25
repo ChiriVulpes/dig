@@ -253,7 +253,7 @@ export default class Tile implements IMouseEventHandler {
 		if ((light ?? Infinity) <= 0 && (tile.context.world.stats.state === GameState.FellBehind || tile.revealed))
 			light = 1;
 
-		if (description.invisible && description.background === undefined || light === 0)
+		if (description.invisible && description.background === undefined || (light !== undefined && light <= 0))
 			return;
 
 		if (light !== undefined && light < LIGHT_MAX)
