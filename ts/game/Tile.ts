@@ -5,6 +5,7 @@ import Sprite from "../ui/Sprite";
 import Direction, { Directions } from "../util/Direction";
 import Random from "../util/Random";
 import Sound, { SoundType } from "../util/Sound";
+import { GameState } from "./Stats";
 import World from "./World";
 
 enum DamageType {
@@ -244,8 +245,11 @@ export default class Tile implements IMouseEventHandler {
 		return Sprite.get(`tile${category}/${TileType[type].toLowerCase()}`);
 	}
 
-	public static render (type: TileType, canvas: Canvas, x: number, y: number, light?: number, mask?: Direction, tile?: Tile) {
+	public static render (tile: Tile, type: TileType, canvas: Canvas, x: number, y: number, light?: number, mask?: Direction) {
 		const description = tiles[type];
+
+		if ((light ?? Infinity) <= 0 && tile.context.world.stats.state === GameState.FellBehind)
+			light = 1;
 
 		if (description.invisible && description.background === undefined || light === 0)
 			return;
@@ -255,7 +259,7 @@ export default class Tile implements IMouseEventHandler {
 
 		if (!description.invisible) {
 			if (description.base !== undefined)
-				Tile.render(description.base, canvas, x, y, undefined, mask, tile);
+				Tile.render(tile, description.base, canvas, x, y, undefined, mask);
 
 			Tile.getSprite(type).render(canvas, x, y);
 
@@ -285,7 +289,7 @@ export default class Tile implements IMouseEventHandler {
 	}
 
 	public render (canvas: Canvas, x: number, y: number) {
-		Tile.render(this.type, canvas, x, y, this.getLight(), this.getMask(), this);
+		Tile.render(this, this.type, canvas, x, y, this.getLight(), this.getMask());
 
 		if (this.breakAnim)
 			Sprite.get(`tile/break/${this.breakAnim}`).render(canvas, x, y);
@@ -333,6 +337,9 @@ export default class Tile implements IMouseEventHandler {
 	}
 
 	public damage (damageType: DamageType, amount = 1, effects = true) {
+		if (this.durability < 0)
+			return;
+
 		getProperty(this.type, "damage")?.(this, damageType, amount);
 
 		let dealtDamage = false;
