@@ -1,0 +1,20 @@
+body {
+  background: #000;
+  margin: 0;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: 100vh;
+}
+
+canvas {
+  width: calc(var(--width, auto) * 1px);
+  height: calc(var(--height, auto) * 1px);
+  image-rendering: pixelated;
+}
+
+svg {
+  display: none;
+}
+
+/*# sourceMappingURL=index.css.map */
