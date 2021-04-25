@@ -1,6 +1,6 @@
 import { Color } from "../util/Color";
 import Canvas from "./Canvas";
-import { Text } from "./Text";
+import { Align, Text } from "./Text";
 
 export class MutableText {
 
@@ -8,6 +8,7 @@ export class MutableText {
 	private color = Color.WHITE;
 	private maxWidth = Infinity;
 	private scale = 1;
+	private align = Align.Left;
 
 	public constructor (private getter: () => string) {
 		this.refresh();
@@ -37,12 +38,19 @@ export class MutableText {
 		return this;
 	}
 
+	public setAlign (align: Align) {
+		this.align = align;
+		this.refresh();
+		return this;
+	}
+
 	public refresh () {
 		const text = this.getter();
 		const shouldRefresh = this.text?.text !== text
 			|| this.color !== this.text?.color
 			|| this.maxWidth !== this.text?.maxWidth
-			|| this.scale !== this.text?.scale;
+			|| this.scale !== this.text?.scale
+			|| this.align !== this.text.align;
 
 		if (shouldRefresh) {
 			if (!text.length) {
@@ -50,7 +58,7 @@ export class MutableText {
 				return;
 			}
 
-			const newText = new Text(text, this.color, this.maxWidth, this.scale);
+			const newText = new Text(text, this.color, this.maxWidth, this.scale, this.align);
 			newText.waitForRendered().then(() => this.text = newText);
 		}
 	}

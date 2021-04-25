@@ -55,15 +55,31 @@ const characterWidthExceptions: Partial<Record<string, number>> = {
 
 const SVG = "http://www.w3.org/2000/svg";
 
+interface ISplit {
+	index: number;
+	lineWidth: number;
+}
+
+export enum Align {
+	Left,
+	Centre,
+	Right,
+}
+
 export class Text {
 
 	private image?: Canvas;
 	private generating = false;
 
-	public constructor (public readonly text: string, public readonly color: Color, public readonly maxWidth = Infinity, public readonly scale = 1) {
-	}
+	public constructor (
+		public readonly text: string,
+		public readonly color: Color,
+		public readonly maxWidth = Infinity,
+		public readonly scale = 1,
+		public readonly align = Align.Left
+	) { }
 
-	private layout?: [width: number, height: number, splits: Set<number>];
+	private layout?: [width: number, height: number, splits: ISplit[]];
 	public getLayout () {
 		if (!this.layout) {
 			let width = 0;
@@ -71,15 +87,18 @@ export class Text {
 			let wordWidth = 0;
 			let height = CHAR_HEIGHT * this.scale;
 			let needsToAddSplit = false;
-			let splits = new Set<number>();
+			let splits: ISplit[] = [];
 			for (let i = 0; i < this.text.length; i++) {
 				const char = this.text[i];
 
 				if (char === " " || char === "\n") {
 					lineWidth += wordWidth;
 					wordWidth = 0;
-					if (needsToAddSplit || char === "\n")
-						splits.add(i);
+					if (needsToAddSplit || char === "\n") {
+						if (char === "\n")
+							splits.push({ index: i, lineWidth: -1 });
+						splits[splits.length - 1].index = i;
+					}
 					needsToAddSplit = false;
 				}
 
@@ -89,6 +108,11 @@ export class Text {
 				if (lineWidth + wordWidth > this.maxWidth || char === "\n") {
 					height += CHAR_HEIGHT * this.scale;
 					width = Math.max(lineWidth, width);
+
+					if (char !== "\n")
+						splits.push({ index: -1, lineWidth });
+					splits[splits.length - 1].lineWidth = lineWidth;
+
 					lineWidth = 0;
 					needsToAddSplit = char !== "\n"; // we've already added the split for newlines, but otherwise split at the next space
 				}
@@ -98,6 +122,7 @@ export class Text {
 			width = Math.max(lineWidth, width);
 
 			height += this.scale; // we render a shadow, so we need to add 1px (multiplied by scale)
+			splits.push({ index: Infinity, lineWidth });
 			this.layout = [width, height, splits];
 		}
 
@@ -142,7 +167,7 @@ export class Text {
 		this.image = result;
 	}
 
-	private async renderText (canvas: Canvas, y: number, splits: Set<number>, color = this.color) {
+	private async renderText (canvas: Canvas, y: number, splits: (ISplit | undefined)[], color = this.color) {
 		const svg = document.createElementNS(SVG, "svg");
 		const filter = document.createElementNS(SVG, "filter");
 		filter.id = color.getID();
@@ -156,8 +181,25 @@ export class Text {
 
 		canvas.context.filter = `url(#${filter.id})`;
 
-		let x = 0;
+		let x: number | undefined;
+		let splitIndex = 0;
 		for (let i = 0; i < this.text.length; i++) {
+			const split = splits[splitIndex];
+
+			if (x === undefined) {
+				switch (this.align) {
+					case Align.Left:
+						x = 0;
+						break;
+					case Align.Centre:
+						x = canvas.width / 2 - (split?.lineWidth ?? 0) / 2;
+						break;
+					case Align.Right:
+						x = canvas.width - (split?.lineWidth ?? 0);
+						break;
+				}
+			}
+
 			const char = this.text[i];
 			if (char !== " " && char !== "\n") {
 				const code = this.text.charCodeAt(i);
@@ -172,8 +214,9 @@ export class Text {
 			}
 
 			x += (characterWidthExceptions[char] ?? CHAR_WIDTH) * this.scale;
-			if (splits.has(i)) {
-				x = 0;
+			if (split?.index === i) {
+				splitIndex++;
+				x = undefined;
 				y += CHAR_HEIGHT * this.scale;
 			}
 		}
