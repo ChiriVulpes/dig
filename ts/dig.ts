@@ -56,7 +56,7 @@ export const mouse = new Mouse()
 // Render & Update
 //
 
-const updateInterval = 1000 / 60;
+const updateInterval = Math.floor(1000 / 60);
 
 function update () {
 	stats.update();
@@ -71,10 +71,11 @@ function render () {
 	requestAnimationFrame(render);
 
 	const now = Date.now();
-	if (now - lastFrame < updateInterval)
+	const elapsed = now - lastFrame;
+	if (elapsed < updateInterval)
 		return;
 
-	lastFrame = now;
+	lastFrame = now - (elapsed % updateInterval);
 	update();
 
 	canvas.clear();
