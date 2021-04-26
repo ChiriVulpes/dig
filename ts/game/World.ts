@@ -26,7 +26,8 @@ export default class World {
 	public setTile (x: number, y: number, type: TileType) {
 		this.invalidateAdjacentTiles(x, y);
 		if (type === TileType.Mineshaft)
-			this.mineshaft[y] = true;
+			this.setHasMineshaft(y);
+
 		return this.tiles[y][x] = new Tile(type, this, x, y);
 	}
 
@@ -53,6 +54,7 @@ export default class World {
 
 	public setHasMineshaft (y: number) {
 		this.mineshaft[y] = true;
+		this.stats.mineshaftDepth = Math.max(this.stats.mineshaftDepth, y);
 	}
 
 	public setIsMineable (y: number) {
@@ -61,8 +63,11 @@ export default class World {
 
 	public hasMineshaft (y: number) {
 		let mineshaft = this.mineshaft[y];
-		if (mineshaft === undefined)
+		if (mineshaft === undefined) {
 			mineshaft = this.mineshaft[y] = this.tiles[y]?.some(tile => tile.type === TileType.Mineshaft) ?? false;
+			if (mineshaft)
+				this.stats.mineshaftDepth = Math.max(this.stats.mineshaftDepth, y);
+		}
 
 		return mineshaft;
 	}

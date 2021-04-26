@@ -1,4 +1,4 @@
-import { GameState } from "../Constants";
+import { GameState, TILES } from "../Constants";
 import { TileType } from "./Tile";
 
 export const NOT_DISCOVERED = -1;
@@ -9,6 +9,7 @@ const LOCAL_STORAGE_KEY_SCORES = "scores";
 export class Stats {
 	public dug!: number;
 	public turn!: number;
+	public mineshaftDepth!: number;
 	public tick!: number;
 	public exhaustion!: number;
 	public score!: number;
@@ -29,6 +30,17 @@ export class Stats {
 		return COST_ASSAY + this.turn * 10;
 	}
 
+	public get scheduledDepthDifference () {
+		if (this.turn < 50)
+			return 0;
+
+		const difference = this.turn - this.dug;
+		if (difference > 0)
+			return difference;
+
+		return this.mineshaftDepth - this.turn - TILES + 7;
+	}
+
 	public constructor () {
 		this.reset();
 	}
@@ -42,6 +54,7 @@ export class Stats {
 		this.state = GameState.Surface;
 		this.explosives = NOT_DISCOVERED;
 		this.discoveredAssays = false;
+		this.mineshaftDepth = 0;
 		return this;
 	}
 
@@ -56,7 +69,7 @@ export class Stats {
 	}
 
 	public passTurn () {
-		this.turn++
+		this.turn++;
 		this.state = GameState.Mining;
 	}
 

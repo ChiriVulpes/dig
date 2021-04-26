@@ -15,7 +15,9 @@ enum FontSprite {
 	Exclamation,
 	Colon,
 	Parentheses,
-	Currency
+	Currency,
+	Plus,
+	Minus,
 }
 
 interface IFontSpriteCharacterRange {
@@ -35,6 +37,8 @@ const fontSpriteDefinitions: Record<FontSprite, FontSpriteDefinition> = {
 	[FontSprite.Exclamation]: "!".charCodeAt(0),
 	[FontSprite.Colon]: ":".charCodeAt(0),
 	[FontSprite.Currency]: "$".charCodeAt(0),
+	[FontSprite.Plus]: "+".charCodeAt(0),
+	[FontSprite.Minus]: "-".charCodeAt(0),
 };
 
 const characterWidthExceptions: Partial<Record<string, number>> = {
@@ -51,6 +55,8 @@ const characterWidthExceptions: Partial<Record<string, number>> = {
 	":": 3,
 	"(": 4,
 	")": 4,
+	"+": 5,
+	"-": 5,
 };
 
 const SVG = "http://www.w3.org/2000/svg";
