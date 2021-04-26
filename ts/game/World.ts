@@ -1,9 +1,9 @@
-import { TILES } from "../Constants";
+import { GameState, TILES } from "../Constants";
 import { Particles } from "../ui/Particles";
 import Direction, { Directions } from "../util/Direction";
 import Maths from "../util/Maths";
 import Random from "../util/Random";
-import { GameState, Stats } from "./Stats";
+import { Stats } from "./Stats";
 import Tile, { ITileContext, TileType } from "./Tile";
 
 const BLANK_ROWS = TILES - 1;

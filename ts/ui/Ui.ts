@@ -1,4 +1,5 @@
-import { GameState, NOT_DISCOVERED, Stats } from "../game/Stats";
+import { GameState } from "../Constants";
+import { NOT_DISCOVERED, Stats } from "../game/Stats";
 import Canvas from "./Canvas";
 import { IMouseEventHandler } from "./Mouse";
 import { MutableText } from "./MutableText";

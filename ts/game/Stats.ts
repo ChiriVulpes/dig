@@ -1,8 +1,5 @@
-export enum GameState {
-	Surface,
-	Mining,
-	FellBehind,
-}
+import { GameState } from "../Constants";
+import { TileType } from "./Tile";
 
 export const NOT_DISCOVERED = -1;
 export const COST_ASSAY = 1000;
@@ -63,8 +60,9 @@ export class Stats {
 		this.state = GameState.Mining;
 	}
 
-	public dig () {
-		this.dug++;
+	public dig (tileType: TileType) {
+		if (tileType === TileType.Rock)
+			this.dug++;
 		this.state = GameState.Mining;
 	}
 
