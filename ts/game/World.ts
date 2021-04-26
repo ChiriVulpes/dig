@@ -12,6 +12,7 @@ export default class World {
 	private first!: number;
 	public readonly tiles: Tile[][] = [];
 	private readonly mineshaft: (boolean | undefined)[] = [];
+	private readonly mineable: (boolean | undefined)[] = [];
 	public particles!: Particles;
 
 	public constructor (public readonly stats: Stats) {
@@ -50,8 +51,12 @@ export default class World {
 		return this.getTile(...Directions.move(typeof context === "number" ? context : context.x, typeof context === "number" ? y! : context.y, direction));
 	}
 
-	public setHasMineable (y: number) {
+	public setHasMineshaft (y: number) {
 		this.mineshaft[y] = true;
+	}
+
+	public setIsMineable (y: number) {
+		this.mineable[y] = true;
 	}
 
 	public hasMineshaft (y: number) {
@@ -60,6 +65,14 @@ export default class World {
 			mineshaft = this.mineshaft[y] = this.tiles[y]?.some(tile => tile.type === TileType.Mineshaft) ?? false;
 
 		return mineshaft;
+	}
+
+	public hasMineable (y: number) {
+		let mineable = this.mineable[y];
+		if (mineable === undefined)
+			mineable = this.mineable[y] = this.tiles[y]?.some(tile => tile.isMineable()) ?? false;
+
+		return mineable;
 	}
 
 	public generateFor (y: number) {
