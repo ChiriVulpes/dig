@@ -5,6 +5,7 @@ body {
 	justify-content: center;
 	align-items: center;
     height: 100vh;
+	color: #9bd1ec;
 }
 
 @function floor($num) {
@@ -21,4 +22,37 @@ canvas {
 svg {
 	position: fixed;
 	top: 100vh;
+}
+
+aside {
+	position: fixed;
+	max-width: 220px;
+	font-size: inherit;
+	top: 30px;
+	left: 60px;
+	
+	ul {
+		margin-left: -50px;
+	}
+}
+
+a {
+	color: green;
+	&:hover {
+		color: lime;
+	}
+	
+	padding: 5px 10px;
+	display: inline-block;
+}
+
+li::marker {
+	color: #004200;
+}
+
+#music {
+	text-decoration: none;
+	position: fixed;
+	bottom: 30px;
+	left: 30px;
 }
