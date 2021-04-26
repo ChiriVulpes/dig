@@ -11,8 +11,9 @@ export class Ui implements IMouseEventHandler {
 		...this.stats.state === GameState.Surface ? [
 			...!this.stats.highscore ? [] : [`Highest stock value: $${this.stats.highscore}`],
 		] : [
+			`Depth: ${this.stats.turn}${!this.stats.scheduledDepthDifference ? ""
+				: ` (${this.stats.scheduledDepthDifference > 0 ? "+" : ""}${this.stats.scheduledDepthDifference})`}`,
 			...this.stats.turn * 10 === this.stats.score ? [] : [`Stock value: $${this.stats.score}`],
-			`Mined depth: ${this.stats.turn}`,
 		],
 	].join("\n"));
 

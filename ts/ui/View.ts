@@ -48,15 +48,15 @@ export class View {
 		if (this.step > 0 && (stats.dug > this.y / TILE || world.hasMineshaft(bottomRow - VIEW_PADDING_TILES)))
 			this.step = -32;
 
-		if (this.step <= 0 && this.step % 2) {
-			this.y++;
-			mouse.updatePosition();
-			world.generateFor(bottomRow + 1);
-
+		if (this.step < 0 && this.step % 2 === 0) {
 			if (this.y % 16 === 0) {
 				stats.passTurn();
 				stats.score += 10;
 			}
+
+			this.y++;
+			mouse.updatePosition();
+			world.generateFor(bottomRow + 1);
 		}
 
 		let hasMineshaft = false;
