@@ -56,6 +56,8 @@ export const mouse = new Mouse()
 // Render & Update
 //
 
+const updateInterval = 1000 / 60;
+
 function update () {
 	stats.update();
 	mouse.update();
@@ -64,10 +66,16 @@ function update () {
 	view.update(world, stats, mouse);
 }
 
-setInterval(update, 1000 / 60);
-
+let lastFrame = 0;
 function render () {
 	requestAnimationFrame(render);
+
+	const now = Date.now();
+	if (now - lastFrame < updateInterval)
+		return;
+
+	lastFrame = now;
+	update();
 
 	canvas.clear();
 	view.render(world, canvas);
