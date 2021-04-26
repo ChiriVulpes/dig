@@ -54,27 +54,25 @@ export const mouse = new Mouse()
 
 ////////////////////////////////////
 // Render & Update
-// It's a jam game, don't complain
 //
 
 function update () {
-	requestAnimationFrame(update);
-
 	stats.update();
 	mouse.update();
 	world.update();
 	particles.update();
 	view.update(world, stats, mouse);
-
-
-	render();
 }
 
+setInterval(update, 1000 / 60);
+
 function render () {
+	requestAnimationFrame(render);
+
 	canvas.clear();
 	view.render(world, canvas);
 	particles.render(canvas, view);
 	ui.render(canvas);
 }
 
-update();
+render();
