@@ -239,6 +239,9 @@ export default class Tile implements IMouseEventHandler {
 				tile.invalidate();
 
 		delete this.recalcLightTick;
+
+		if (this.isMineable())
+			this.context.world.setIsMineable(this.context.y);
 	}
 
 	public static getSprite (type: TileType) {

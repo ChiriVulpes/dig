@@ -60,13 +60,19 @@ export class View {
 		}
 
 		let hasMineshaft = false;
-		for (let y = this.getTopAccessibleRowY(); y < bottomRow; y++)
-			if (world.hasMineshaft(y)) {
+		let hasMineable = false;
+		for (let y = this.getTopAccessibleRowY(); y < bottomRow + 2; y++) {
+			if (world.hasMineshaft(y))
 				hasMineshaft = true;
-				break;
-			}
 
-		if (!hasMineshaft && stats.state === GameState.Mining) {
+			if (world.hasMineable(y))
+				hasMineable = true;
+
+			if (hasMineshaft && hasMineable)
+				break;
+		}
+
+		if ((!hasMineshaft || !hasMineable) && stats.state === GameState.Mining) {
 			stats.endGame();
 			this.step = -300;
 		}
