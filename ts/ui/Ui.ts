@@ -69,7 +69,7 @@ export class Ui implements IMouseEventHandler {
 		[width, height] = this.score.getLayout() ?? [0, 0];
 		this.score.render(canvas, 5, canvas.height - height - 2);
 
-		if (this.stats.state === GameState.Mining && this.stats.explosives !== NOT_DISCOVERED || this.stats.discoveredAssays) {
+		if (this.stats.state === GameState.Mining && (this.stats.explosives !== NOT_DISCOVERED || this.stats.discoveredAssays)) {
 			[width, height] = this.abilities.getLayout() ?? [0, 0];
 			this.abilities.render(canvas, canvas.width - width + 1, canvas.height - height - 2);
 		}
