@@ -1,5 +1,5 @@
-import { TILE, TILES } from "../Constants";
-import { GameState, Stats } from "../game/Stats";
+import { GameState, TILE, TILES } from "../Constants";
+import { Stats } from "../game/Stats";
 import World from "../game/World";
 import Canvas from "./Canvas";
 import { Mouse } from "./Mouse";

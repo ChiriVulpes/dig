@@ -1,11 +1,10 @@
-import { SURFACE_TILES, TILE } from "../Constants";
+import { GameState, SURFACE_TILES, TILE } from "../Constants";
 import Canvas from "../ui/Canvas";
 import { IMouseEventHandler } from "../ui/Mouse";
 import Sprite from "../ui/Sprite";
 import Direction, { Directions } from "../util/Direction";
 import Random from "../util/Random";
 import Sound, { SoundType } from "../util/Sound";
-import { GameState } from "./Stats";
 import World from "./World";
 
 enum DamageType {
@@ -398,7 +397,7 @@ export default class Tile implements IMouseEventHandler {
 
 		this.context.world.stats.score += tiles[this.type].score ?? 0;
 		if (damageType === DamageType.Mining)
-			this.context.world.stats.dig();
+			this.context.world.stats.dig(this.type);
 
 		if (effects) {
 			Sound.get(getProperty(this.type, "breakSound") ?? SoundType.Break).play();
