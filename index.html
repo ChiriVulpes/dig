@@ -23,5 +23,26 @@
 			</ul>
 			<button onclick="this.parentElement.remove()">Dismiss</button>
 		</aside>
+		<a id="music" class="playing" href="#" onclick="toggleMusic()" style="filter: grayscale()">🔊</a>
+		<script>
+			let music;
+			function toggleMusic() {
+				if (!music) {
+					music = new Audio('music/dig.mp3');
+					music.loop = true;
+				}
+					
+				if (music.paused) {
+					music.play();
+					
+				} else {
+					music.pause();
+				}
+				
+				const musicLink = document.getElementById("music");
+				musicLink.classList.toggle("playing", music.paused);
+				musicLink.textContent = music.paused ? "🔈" : "🔊";
+			}
+		</script>
 	</body>
 </html>
