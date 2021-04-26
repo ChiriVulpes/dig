@@ -379,7 +379,8 @@ export default class Tile implements IMouseEventHandler {
 				return;
 			}
 
-			this.breakAnim++;
+			if (damageType === DamageType.Mining)
+				this.breakAnim += amount;
 		}
 
 		if (effects) {
