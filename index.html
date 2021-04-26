@@ -43,6 +43,13 @@
 				musicLink.classList.toggle("playing", music.paused);
 				musicLink.textContent = music.paused ? "🔈" : "🔊";
 			}
+			
+			function enableMusic() {
+				toggleMusic();
+				window.removeEventListener("mousedown", enableMusic);
+			}
+			
+			window.addEventListener("mousedown", enableMusic);
 		</script>
 	</body>
 </html>
