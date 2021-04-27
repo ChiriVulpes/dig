@@ -133,7 +133,7 @@ function explodeExplosives (tile: Tile) {
 	tile.remove(true);
 	Sound.get(SoundType.Explode).play();
 
-	const range = Random.int(4, Random.int(5, Random.int(6, 8))); // use multiple calls to weight smaller explosions higher
+	const range = Random.int(4, Random.int(5, Random.int(6, 9))); // use multiple calls to weight smaller explosions higher
 	tile.context.world.particles.create(Sprite.get("explosion"),
 		tile.context.x * TILE + TILE / 2,
 		tile.context.y * TILE + TILE / 2,
@@ -381,7 +381,7 @@ export default class Tile implements IMouseEventHandler {
 				return;
 			}
 
-			if (damageType === DamageType.Mining)
+			if (DamageType.Mining >= getProperty(this.type, "breakable", DamageType.Invulnerable))
 				this.breakAnim += amount;
 		}
 

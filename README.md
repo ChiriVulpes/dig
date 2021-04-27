@@ -1,8 +1,11 @@
 # Dig Dig Dig
 ## by Chirichirichiri
 
-Ludum Dare 48 — **Deeper and Deeper** Compo entry!
+### [Play in your browser!](https://chiri.works/dig)
 
 ![Preview](./preview.png)
 
-The source of this repository is provided as per the Ludum Dare compo rules, but you may notice that there is no license attached to the project. This is intentional, I'm reserving all rights. Please don't use this code or these assets elsewhere. Thanks!
+Originally a [Ludum Dare 48 — **Deeper and Deeper** Compo entry!](https://ldjam.com/events/ludum-dare/48/dig-dig-dig) ([Repository](https://github.com/ChiriCuddles/ld48-dig))
+
+<sub>Copyright © Chiri Vulpes 2021</sub>  
+<sub>All Rights Reserved</sub>
