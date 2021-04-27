@@ -381,7 +381,7 @@ export default class Tile implements IMouseEventHandler {
 				return;
 			}
 
-			if (damageType === DamageType.Mining)
+			if (DamageType.Mining >= getProperty(this.type, "breakable", DamageType.Invulnerable))
 				this.breakAnim += amount;
 		}
 
