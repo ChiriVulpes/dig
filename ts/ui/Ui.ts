@@ -1,3 +1,4 @@
+import Events, { EventBus } from "Events";
 import { GameState } from "../Constants";
 import { NOT_DISCOVERED, Stats } from "../game/Stats";
 import Canvas from "./Canvas";
@@ -5,6 +6,7 @@ import { IMouseEventHandler } from "./Mouse";
 import { MutableText } from "./MutableText";
 import { Align } from "./Text";
 
+@Events.Bus(EventBus.Ui)
 export class Ui implements IMouseEventHandler {
 
 	private score = new MutableText(() => [

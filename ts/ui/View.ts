@@ -1,3 +1,4 @@
+import Events, { EventBus } from "Events";
 import { GameState, TILE, TILES } from "../Constants";
 import { Stats } from "../game/Stats";
 import World from "../game/World";
@@ -7,6 +8,7 @@ import Sprite from "./Sprite";
 
 const VIEW_PADDING_TILES = 6;
 
+@Events.Bus(EventBus.View)
 export class View {
 	public y = 0;
 

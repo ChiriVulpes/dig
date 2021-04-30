@@ -1,3 +1,4 @@
+import Events, { EventBus } from "Events";
 import { GameState, TILE, TILES } from "../Constants";
 import Tile from "../game/Tile";
 import World from "../game/World";
@@ -18,6 +19,7 @@ export interface IMouseEventHandler {
 	onMouseHold?(x: number, y: number): any;
 }
 
+@Events.Bus(EventBus.Mouse)
 export class Mouse {
 
 	public tile?: Tile;

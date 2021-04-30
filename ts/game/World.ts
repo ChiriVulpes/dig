@@ -1,3 +1,4 @@
+import Events, { EventBus } from "Events";
 import { GameState, TILES } from "../Constants";
 import { Particles } from "../ui/Particles";
 import Direction, { Directions } from "../util/Direction";
@@ -8,6 +9,7 @@ import Tile, { ITileContext, TileType } from "./Tile";
 
 const BLANK_ROWS = TILES - 1;
 
+@Events.Bus(EventBus.World)
 export default class World {
 	private first!: number;
 	public readonly tiles: Tile[][] = [];

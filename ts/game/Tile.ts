@@ -1,3 +1,4 @@
+import Events, { EventBus } from "Events";
 import { GameState, SURFACE_TILES, TILE } from "../Constants";
 import Canvas from "../ui/Canvas";
 import { IMouseEventHandler } from "../ui/Mouse";
@@ -166,6 +167,7 @@ export interface ITileContext {
 	y: number;
 }
 
+@Events.Bus(EventBus.Tile)
 export default class Tile implements IMouseEventHandler {
 
 	private hovering = false;
