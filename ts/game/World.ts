@@ -1,4 +1,4 @@
-import Events, { EventBus } from "Events";
+import Events, { EventBus, EventHost } from "Events";
 import { GameState, TILES } from "../Constants";
 import { Particles } from "../ui/Particles";
 import Direction, { Directions } from "../util/Direction";
@@ -9,8 +9,13 @@ import Tile, { ITileContext, TileType } from "./Tile";
 
 const BLANK_ROWS = TILES - 1;
 
+export interface IWorldEvents {
+	change (x: number, y: number, tile?: Tile, oldTile?: Tile): any;
+}
+
 @Events.Bus(EventBus.World)
-export default class World {
+export default class World extends EventHost(Events)<IWorldEvents> {
+
 	private first!: number;
 	public readonly tiles: Tile[][] = [];
 	private readonly mineshaft: (boolean | undefined)[] = [];
@@ -18,6 +23,7 @@ export default class World {
 	public particles!: Particles;
 
 	public constructor (public readonly stats: Stats) {
+		super();
 		this.generateNewWorld();
 	}
 
@@ -30,7 +36,10 @@ export default class World {
 		if (type === TileType.Mineshaft)
 			this.setHasMineshaft(y);
 
-		return this.tiles[y][x] = new Tile(type, this, x, y);
+		const oldTile = this.tiles[y][x];
+		const tile = this.tiles[y][x] = new Tile(type, this, x, y);
+		this.event.emit("change", x, y, tile, oldTile);
+		return tile;
 	}
 
 	public removeTile (x: number, y: number, accessible: boolean) {

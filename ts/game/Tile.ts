@@ -1,7 +1,8 @@
-import Events, { EventBus } from "Events";
+import Events, { EventBus, EventHost, EventsOf, IEventApi } from "Events";
+import { IMouseEvents, ITarget, Mouse } from "ui/Mouse";
+import Strings from "util/Strings";
 import { GameState, SURFACE_TILES, TILE } from "../Constants";
 import Canvas from "../ui/Canvas";
-import { IMouseEventHandler } from "../ui/Mouse";
 import Sprite from "../ui/Sprite";
 import Direction, { Directions } from "../util/Direction";
 import Random from "../util/Random";
@@ -32,8 +33,10 @@ export enum TileCategory {
 
 const LIGHT_MAX = 3;
 
+type TileMouseEvent<E extends keyof IMouseEvents> = `onMouse${Capitalize<E>}`;
+
 type TileDescriptionMouseHandler = {
-	[E in keyof IMouseEventHandler]: (tile: Tile, ...params: Parameters<Exclude<IMouseEventHandler[E], undefined>>) => ReturnType<Exclude<IMouseEventHandler[E], undefined>>;
+	[E in keyof IMouseEvents as TileMouseEvent<E>]?: (tile: Tile, mouse: Mouse) => false | void;
 };
 
 interface ITileDescription extends TileDescriptionMouseHandler {
@@ -168,7 +171,7 @@ export interface ITileContext {
 }
 
 @Events.Bus(EventBus.Tile)
-export default class Tile implements IMouseEventHandler {
+export default class Tile extends EventHost(Events)<EventsOf<ITarget>> implements ITarget {
 
 	private hovering = false;
 	public context: ITileContext;
@@ -182,6 +185,7 @@ export default class Tile implements IMouseEventHandler {
 	private revealed?: boolean;
 
 	public constructor (public readonly type: TileType, world: World, x: number, y: number) {
+		super();
 		this.context = { world, x, y };
 	}
 
@@ -315,59 +319,6 @@ export default class Tile implements IMouseEventHandler {
 		return this.isAccessible() && DamageType.Mining >= getProperty(this.type, "breakable", DamageType.Invulnerable);
 	}
 
-	public onMouseEnter () {
-		this.hovering = true;
-		this.handleEvent("onMouseEnter");
-	}
-
-	public onMouseLeave () {
-		this.hovering = false;
-		this.handleEvent("onMouseLeave");
-	}
-
-	public onMouseClick (x: number, y: number) {
-		this.handleEvent("onMouseClick", x, y);
-	}
-
-	public onMouseRightClick (x: number, y: number) {
-		this.handleEvent("onMouseRightClick", x, y);
-
-		if ((this.getLight() ?? 0) > 0 || this.context.world.stats.score < this.context.world.stats.assayCost)
-			return;
-
-
-		// perform assay
-		let revealedAny = false;
-		const range = 6;
-		for (let y = -range + 1; y < range; y++) {
-			const absY = Math.abs(y);
-			for (let x = -range + 1; x < range; x++) {
-				const value = Math.max(0, range - (Math.abs(x) + absY));
-				if (value <= 0)
-					continue;
-
-				const tile = this.context.world.getTile(this.context.x + x, this.context.y + y);
-				if (tile && !tile.revealed) {
-					tile.revealed = true;
-					revealedAny = true;
-				}
-			}
-		}
-
-		if (revealedAny) {
-			this.context.world.stats.score -= this.context.world.stats.assayCost;
-			Sound.get(SoundType.Assay).play();
-		}
-	}
-
-	public onMouseDown (x: number, y: number) {
-		this.handleEvent("onMouseDown", x, y);
-	}
-
-	public onMouseUp (x: number, y: number) {
-		this.handleEvent("onMouseUp", x, y);
-	}
-
 	public damage (damageType: DamageType, amount = 1, effects = true) {
 		if (this.durability < 0)
 			return;
@@ -414,8 +365,37 @@ export default class Tile implements IMouseEventHandler {
 			amount);
 	}
 
-	public onMouseHold (x: number, y: number) {
-		if (this.handleEvent("onMouseHold", x, y) === false)
+	////////////////////////////////////
+	// Mouse events
+	//
+
+	@EventHost.Handler(Tile, "mouseMove")
+	@EventHost.Handler(Tile, "mouseDown")
+	@EventHost.Handler(Tile, "mouseUp")
+	@EventHost.Handler(Tile, "mouseClick")
+	protected handleEvent (api: IEventApi<Tile>, mouse: Mouse) {
+		this.handleMouseEvent(api, mouse);
+	}
+
+	@EventHost.Handler(Tile, "mouseEnter")
+	protected onMouseEnter (api: IEventApi<Tile>, mouse: Mouse) {
+		if (this.handleMouseEvent(api, mouse) === false)
+			return;
+
+		this.hovering = true;
+	}
+
+	@EventHost.Handler(Tile, "mouseLeave")
+	protected onMouseLeave (api: IEventApi<Tile>, mouse: Mouse) {
+		if (this.handleMouseEvent(api, mouse) === false)
+			return;
+
+		this.hovering = false;
+	}
+
+	@EventHost.Handler(Tile, "mouseHold")
+	protected onMouseHold (api: IEventApi<Tile>, mouse: Mouse) {
+		if (this.handleMouseEvent(api, mouse) === false)
 			return;
 
 		if (!this.hovering || !this.isAccessible())
@@ -428,7 +408,40 @@ export default class Tile implements IMouseEventHandler {
 		this.damage(DamageType.Mining);
 	}
 
-	private handleEvent (event: keyof IMouseEventHandler, x?: number, y?: number) {
-		return tiles[this.type][event]?.(this, x!, y!);
+	@EventHost.Handler(Tile, "mouseRightClick")
+	protected onMouseRightClick (api: IEventApi<Tile>, mouse: Mouse) {
+		if (this.handleMouseEvent(api, mouse) === false)
+			return;
+
+		if ((this.getLight() ?? 0) > 0 || this.context.world.stats.score < this.context.world.stats.assayCost)
+			return;
+
+
+		// perform assay
+		let revealedAny = false;
+		const range = 6;
+		for (let y = -range + 1; y < range; y++) {
+			const absY = Math.abs(y);
+			for (let x = -range + 1; x < range; x++) {
+				const value = Math.max(0, range - (Math.abs(x) + absY));
+				if (value <= 0)
+					continue;
+
+				const tile = this.context.world.getTile(this.context.x + x, this.context.y + y);
+				if (tile && !tile.revealed) {
+					tile.revealed = true;
+					revealedAny = true;
+				}
+			}
+		}
+
+		if (revealedAny) {
+			this.context.world.stats.score -= this.context.world.stats.assayCost;
+			Sound.get(SoundType.Assay).play();
+		}
+	}
+
+	private handleMouseEvent (api: IEventApi<Tile>, mouse: Mouse) {
+		return tiles[this.type][`on${Strings.capitalise(api.event)}` as const]?.(this, mouse) as false | undefined;
 	}
 }

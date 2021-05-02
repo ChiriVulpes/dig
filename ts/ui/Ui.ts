@@ -2,12 +2,11 @@ import Events, { EventBus } from "Events";
 import { GameState } from "../Constants";
 import { NOT_DISCOVERED, Stats } from "../game/Stats";
 import Canvas from "./Canvas";
-import { IMouseEventHandler } from "./Mouse";
 import { MutableText } from "./MutableText";
 import { Align } from "./Text";
 
 @Events.Bus(EventBus.Ui)
-export class Ui implements IMouseEventHandler {
+export class Ui {
 
 	private score = new MutableText(() => [
 		...this.stats.state === GameState.Surface ? [
@@ -78,6 +77,7 @@ export class Ui implements IMouseEventHandler {
 		}
 	}
 
+	@Events.Handler(EventBus.Mouse, "down")
 	public onMouseDown () {
 		if (this.stats.state === GameState.FellBehind)
 			this.stats.reset();

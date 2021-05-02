@@ -15,7 +15,6 @@ import Sound from "./util/Sound";
 
 export const stats = new Stats();
 export const world = new World(stats);
-export const view = new View();
 
 
 ////////////////////////////////////
@@ -42,14 +41,11 @@ setTimeout(setCanvasSize, 200);
 window.addEventListener("resize", setCanvasSize);
 
 
+export const mouse = new Mouse(canvas);
+
+export const view = new View(world, mouse);
+
 export const ui = new Ui(stats);
-
-
-export const mouse = new Mouse()
-	.setWorld(world)
-	.setView(view)
-	.setCanvas(canvas)
-	.setUi(ui);
 
 
 ////////////////////////////////////
@@ -63,7 +59,7 @@ function update () {
 	mouse.update();
 	world.update();
 	particles.update();
-	view.update(world, stats, mouse);
+	view.update(stats);
 }
 
 let lastFrame = 0;

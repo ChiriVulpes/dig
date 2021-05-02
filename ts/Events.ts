@@ -25,3 +25,7 @@ export interface IEventBuses {
 }
 
 export default new Excevent<IEventBuses>();
+
+export { default as EventEmitter, EventHost } from "@@wayward/excevent/amd/Emitter";
+export { Events as EventsOf, IEventApi } from "@@wayward/excevent/amd/IExcevent";
+
