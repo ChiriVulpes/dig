@@ -1,4 +1,4 @@
-import Excevent from "@@wayward/excevent/amd/Excevent";
+import Excevent from "@@wayward/excevent/Excevent";
 import { Stats } from "game/Stats";
 import Tile from "game/Tile";
 import World from "game/World";
@@ -26,6 +26,6 @@ export interface IEventBuses {
 
 export default new Excevent<IEventBuses>();
 
-export { default as EventEmitter, EventHost } from "@@wayward/excevent/amd/Emitter";
-export { Events as EventsOf, IEventApi } from "@@wayward/excevent/amd/IExcevent";
+export { default as EventEmitter, EventHost } from "@@wayward/excevent/Emitter";
+export { Events as EventsOf, IEventApi } from "@@wayward/excevent/IExcevent";
 
