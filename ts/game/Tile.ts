@@ -114,7 +114,7 @@ const tiles: Record<TileType, ITileDescription> = {
 	[TileType.Explosives]: {
 		background: TileType.Rock,
 		separated: true,
-		cursor: Cursor.Grab,
+		cursor: Cursor["Grab-Ignite"],
 		onMouseDown (tile: Tile) {
 			if (!tile.isAccessible())
 				return;
@@ -193,7 +193,7 @@ export default class Tile extends EventHost(Events)<EventsOf<ITarget>> implement
 			return result;
 
 		if (this.isMineable())
-			return Cursor.Pointer;
+			return Cursor.Mine;
 
 		return undefined;
 	}

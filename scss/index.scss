@@ -75,7 +75,8 @@ $cursors: (
 	pointer: 1 1,
 	grab: 1 3,
 	grabbing: 1 1,
-	dig: 0 23 pointer,
+	mine: 1 1 pointer,
+	"grab-ignite": 1 3 pointer,
 );
 
 @each $name, $data in $cursors {

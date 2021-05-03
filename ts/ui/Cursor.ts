@@ -3,11 +3,12 @@ import Events, { EventBus } from "Events";
 import { ITarget, Mouse } from "ui/Mouse";
 
 export enum Cursor {
-	// Dig,
+	Mine,
 	Default,
 	Pointer,
 	Grab,
 	Grabbing,
+	"Grab-Ignite",
 }
 
 export interface IHasCustomCursor {
