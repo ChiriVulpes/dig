@@ -1,3 +1,15 @@
+@mixin cursor($name, $x, $y, $fallback: $name) {
+	cursor: url("../sprite/cursor/#{$name}.png") $x * 2 $y * 2, $fallback;
+}
+
+@function list-get($list, $i, $fallback: null) {
+	@if length($list) < $i {
+		@return $fallback;
+	}
+	
+	@return nth($list, $i);
+}
+
 body {
 	background: #000;
 	margin: 0;
@@ -6,10 +18,7 @@ body {
 	align-items: center;
     height: 100vh;
 	color: #9bd1ec;
-}
-
-@function floor($num) {
-    @return calc(#{$num} * var(--shf) / var(--shf));
+	@include cursor(default, 1, 1);
 }
 
 canvas {
@@ -55,4 +64,25 @@ li::marker {
 	position: fixed;
 	bottom: 30px;
 	left: 30px;
+}
+
+a, button {
+	@include cursor(pointer, 1, 1);
+}
+
+$cursors: (
+	default: 1 1,
+	pointer: 1 1,
+	grab: 1 3,
+	grabbing: 1 1,
+	dig: 0 23 pointer,
+);
+
+@each $name, $data in $cursors {
+	.cursor-#{$name} {
+		@include cursor($name, 
+			list-get($data, 1), 
+			list-get($data, 2), 
+			list-get($data, 3, $name));
+	}
 }

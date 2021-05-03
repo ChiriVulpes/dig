@@ -1,4 +1,5 @@
 import Events, { EventBus, EventHost, EventsOf, IEventApi } from "Events";
+import { Cursor, IHasCustomCursor } from "ui/Cursor";
 import { IMouseEvents, ITarget, Mouse } from "ui/Mouse";
 import Strings from "util/Strings";
 import { GameState, SURFACE_TILES, TILE } from "../Constants";
@@ -40,6 +41,7 @@ type TileDescriptionMouseHandler = {
 };
 
 interface ITileDescription extends TileDescriptionMouseHandler {
+	cursor?: Cursor;
 	hitSound?: SoundType;
 	breakSound?: SoundType;
 	breakable?: DamageType;
@@ -112,6 +114,7 @@ const tiles: Record<TileType, ITileDescription> = {
 	[TileType.Explosives]: {
 		background: TileType.Rock,
 		separated: true,
+		cursor: Cursor.Grab,
 		onMouseDown (tile: Tile) {
 			if (!tile.isAccessible())
 				return;
@@ -171,7 +174,7 @@ export interface ITileContext {
 }
 
 @Events.Bus(EventBus.Tile)
-export default class Tile extends EventHost(Events)<EventsOf<ITarget>> implements ITarget {
+export default class Tile extends EventHost(Events)<EventsOf<ITarget>> implements ITarget, IHasCustomCursor {
 
 	private hovering = false;
 	public context: ITileContext;
@@ -183,6 +186,17 @@ export default class Tile extends EventHost(Events)<EventsOf<ITarget>> implement
 	private light?: number;
 	private recalcLightTick: number | undefined = -1;
 	private revealed?: boolean;
+
+	public get cursor () {
+		const result = getProperty(this.type, "cursor");
+		if (result !== undefined)
+			return result;
+
+		if (this.isMineable())
+			return Cursor.Pointer;
+
+		return undefined;
+	}
 
 	public constructor (public readonly type: TileType, world: World, x: number, y: number) {
 		super();

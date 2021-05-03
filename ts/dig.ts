@@ -1,3 +1,4 @@
+import CursorHandler from "ui/Cursor";
 import { TILE, TILES } from "./Constants";
 import { Stats } from "./game/Stats";
 import World from "./game/World";
@@ -46,6 +47,8 @@ export const mouse = new Mouse(canvas);
 export const view = new View(world, mouse);
 
 export const ui = new Ui(stats);
+
+export const cursor = new CursorHandler();
 
 
 ////////////////////////////////////

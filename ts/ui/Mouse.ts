@@ -8,6 +8,7 @@ type CursorEvent = Partial<MouseEvent> & Partial<TouchEvent>;
 export interface IMouseEvents {
 	enter (target: ITarget): any;
 	leave (oldTarget: ITarget): any;
+	changeTarget (target?: ITarget): any;
 	move (x: number, y: number): any;
 	down (x: number, y: number): any;
 	up (x: number, y: number): any;
@@ -80,6 +81,7 @@ export class Mouse extends EventHost(Events)<IMouseEvents> {
 			}
 
 			this.target = target;
+			this.event.emit("changeTarget", target);
 		}
 	}
 
