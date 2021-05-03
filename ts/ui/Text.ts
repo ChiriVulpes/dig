@@ -57,6 +57,7 @@ const characterWidthExceptions: Partial<Record<string, number>> = {
 	")": 4,
 	"+": 5,
 	"-": 5,
+	"\n": 0,
 };
 
 const SVG = "http://www.w3.org/2000/svg";

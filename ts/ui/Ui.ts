@@ -19,7 +19,7 @@ export class Ui {
 	].join("\n"));
 
 	private abilities = new MutableText(() => [
-		"ABILITIES: Right Click ",
+		"ABILITIES: Right Click",
 		...!this.stats.discoveredAssays ? []
 			: [`Assay cost: $${this.stats.assayCost}`],
 		...this.stats.explosives === NOT_DISCOVERED ? []
@@ -73,7 +73,7 @@ export class Ui {
 
 		if (this.stats.state === GameState.Mining && (this.stats.explosives !== NOT_DISCOVERED || this.stats.discoveredAssays)) {
 			[width, height] = this.abilities.getLayout() ?? [0, 0];
-			this.abilities.render(canvas, canvas.width - width + 1, canvas.height - height - 2);
+			this.abilities.render(canvas, canvas.width - width - 5, canvas.height - height - 2);
 		}
 	}
 
