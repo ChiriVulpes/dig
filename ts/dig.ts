@@ -1,6 +1,7 @@
 import { EventHost } from "@@wayward/excevent/Emitter";
 import Events, { EventBus } from "Events";
 import CursorHandler from "ui/Cursor";
+import applyFunctionPrototypes from "util/prototype/Function";
 import { TILE, TILES } from "./Constants";
 import { Stats } from "./game/Stats";
 import World from "./game/World";
@@ -10,6 +11,8 @@ import { Particles } from "./ui/Particles";
 import { Ui } from "./ui/Ui";
 import { View } from "./ui/View";
 import Sound from "./util/Sound";
+
+applyFunctionPrototypes();
 
 export interface IMainEvents {
 	update (): any;

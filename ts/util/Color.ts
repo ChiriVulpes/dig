@@ -25,4 +25,10 @@ export class Color {
 		int = (int << 8) + this.blue;
 		return int;
 	}
+
+	public static equals (color1: Color, color2: Color) {
+		return color1.red === color2.red
+			&& color1.green === color2.green
+			&& color1.blue === color2.blue;
+	}
 }

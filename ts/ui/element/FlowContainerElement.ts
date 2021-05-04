@@ -49,8 +49,9 @@ export default class FlowContainerElement extends ContainerElement<IFlowLayoutIn
 		for (let i = 0; i < children.length; i++) {
 			const element = children[i] as Partial<Element>;
 
-			const elementWidth = element.info?.width ?? 0;
-			const elementHeight = element.info?.height ?? 0;
+			const info = element.pendingInfo ?? element.info;
+			const elementWidth = info?.width ?? 0;
+			const elementHeight = info?.height ?? 0;
 			const isNewline = element === SYMBOL_NEWLINE;
 
 			if (isNewline) {

@@ -1,26 +1,17 @@
 import { EventHost } from "@@wayward/excevent/Emitter";
 import Element, { IElementInfo } from "ui/element/Element";
+import Text from "ui/element/Text";
+import Bound from "util/decorator/Bound";
 import { ArrayOr, GetterOfOr } from "util/type";
 
 export const SYMBOL_NEWLINE = Symbol("LAYOUT_NEWLINE");
 
 export type Child = Element | typeof SYMBOL_NEWLINE;
-export type ResolveableChild = GetterOfOr<ArrayOr<Child | undefined>>;
-
-function childrenEquals (childrenA: Child[], childrenB: Child[]) {
-	if (childrenA.length !== childrenB.length)
-		return false;
-
-	for (let i = 0; i < childrenA.length; i++)
-		if (!Element.equals(childrenA[i], childrenB[i]))
-			return false;
-
-	return true;
-}
+export type ResolveableChild = GetterOfOr<ArrayOr<Child | string | undefined>>;
 
 export default abstract class ContainerElement<INFO extends IElementInfo = IElementInfo> extends Element<INFO> {
 
-	protected readonly children: Child[] = [];
+	protected children: Child[] = [];
 	protected pendingChildren?: Child[];
 	protected readonly unresolvedChildren: ResolveableChild[] = [];
 
@@ -33,16 +24,27 @@ export default abstract class ContainerElement<INFO extends IElementInfo = IElem
 			if (!Array.isArray(child))
 				child = [child];
 
-			for (const subChild of child)
+			for (let subChild of child) {
+				if (typeof subChild === "string")
+					subChild = new Text(subChild);
+
 				if (subChild)
 					children.push(subChild);
+			}
 		}
 
-		if (!childrenEquals(children, this.pendingChildren ?? this.children))
-			this.pendingChildren = children;
+		// dispose old pending children
+		for (const child of this.pendingChildren ?? [])
+			if (!children.includes(child))
+				(child as Partial<Element>).dispose?.();
 
-		for (const child of this.pendingChildren ?? this.children)
+		this.pendingChildren = children;
+
+		for (const child of this.pendingChildren ?? this.children) {
 			(child as Partial<Element>).forceRefresh?.();
+			if (child instanceof Element)
+				child.parent = this;
+		}
 
 		this.markNeedsReflow();
 	}
@@ -69,7 +71,11 @@ export default abstract class ContainerElement<INFO extends IElementInfo = IElem
 
 	private addInternal (...elements: ResolveableChild[]) {
 		this.unresolvedChildren.push(...elements);
-		this.markNeedsRefresh();
+		for (const element of elements)
+			if (element instanceof Element)
+				element.parent = this;
+
+		this.forceRefresh();
 		return this;
 	}
 
@@ -78,30 +84,59 @@ export default abstract class ContainerElement<INFO extends IElementInfo = IElem
 		return this;
 	}
 
-	private clearInternal () {
+	private clearInternal (fullClear = false) {
 		this.markNeedsReflow();
+		for (const children of [this.pendingChildren, this.unresolvedChildren, ...fullClear ? [this.children] : []])
+			for (const child of children ?? [])
+				(child as Partial<Element> | undefined)?.dispose?.();
+
 		this.unresolvedChildren.splice(0, Infinity);
-		this.children.splice(0, Infinity);
+		delete this.pendingChildren;
 		return this;
 	}
 
 	@EventHost.Handler(ContainerElement, "reflow")
 	protected onReflow () {
-		for (const child of this.pendingChildren ?? this.children)
-			(child as Partial<Element>).event?.until(this, "reflow", initialiser => initialiser
-				.subscribe("needsRefresh", () => this.markNeedsRefresh())
-				.subscribe("needsReflow", () => this.markNeedsReflow())
-				.subscribe("needsRender", () => this.markNeedsRerender()));
+		for (const child of this.pendingChildren ?? this.children) {
+			if (child instanceof Element) {
+				child.event
+					.subscribe("needsReflow", this.markNeedsReflow)
+					.subscribe("needsRender", this.markNeedsRerender);
+
+				Promise.race([
+					this.event.waitFor("dispose"),
+					child.event.waitFor("dispose"),
+				])
+					.then(() => child.event
+						.unsubscribe("needsReflow", this.markNeedsReflow)
+						.unsubscribe("needsRender", this.markNeedsRerender));
+			}
+		}
 	}
 
-	protected override equals (element: ContainerElement) {
-		if (this.children.length !== element.children.length)
-			return false;
+	@EventHost.Handler(ContainerElement, "dispose")
+	protected onDispose () {
+		this.clearInternal(true);
+	}
 
-		for (let i = 0; i < this.children.length; i++)
-			if (!Element.equals(this.children[i], element.children[i]))
-				return false;
+	@EventHost.Handler(ContainerElement, "render")
+	protected onRender () {
+		if (!this.pendingChildren)
+			return;
 
-		return true;
+		for (const child of this.children)
+			if (!this.pendingChildren.includes(child))
+				(child as Partial<Element>).dispose?.();
+
+		this.children = this.pendingChildren ?? [];
+		delete this.pendingChildren;
+	}
+
+	public override forceRefresh () {
+		this.refreshInternal.debounce(1);
+	}
+
+	@Bound private refreshInternal () {
+		super.forceRefresh();
 	}
 }

@@ -1,28 +1,29 @@
 import { ResolveableChild } from "ui/element/ContainerElement";
 import FlowContainerElement from "ui/element/FlowContainerElement";
-import Text from "ui/element/Text";
-import Bound from "util/decorator/Bound";
+import { Color } from "util/Color";
 
 export default class LabelledValue extends FlowContainerElement {
 
+	private readonly label = new FlowContainerElement()
+		.setStyle("color", Color.fromInt(0xAAAAAA));
 	private readonly contents = new FlowContainerElement();
 
 	public constructor () {
 		super();
-		this.add(this.getLabel);
-		this.add(this.contents);
+		this.add(this.label, this.contents);
 		this.setDeferredContainer(this.contents);
 	}
 
-	private label?: ResolveableChild;
-	public setLabel (label?: ResolveableChild) {
-		this.label = new FlowContainerElement()
-			.add(label)
-			.add(new Text(": "));
+	public initialiseLabel (initialiser: (container: FlowContainerElement) => any) {
+		this.label.empty();
+		initialiser(this.label);
+		this.label.add(": ");
 		return this;
 	}
 
-	@Bound private getLabel () {
-		return typeof this.label === "function" ? this.label() : this.label;
+	public setLabel (...contents: ResolveableChild[]) {
+		this.label.empty()
+			.add(...contents, ": ");
+		return this;
 	}
 }

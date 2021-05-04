@@ -1,7 +1,6 @@
 import Canvas from "ui/Canvas";
 import Element from "ui/element/Element";
 import Sprite from "ui/Sprite";
-import { Color } from "util/Color";
 import Enums from "util/Enums";
 import { GetterOfOr } from "util/type";
 
@@ -69,11 +68,7 @@ export default class Text extends Element {
 	private text!: string;
 	private getter?: () => string;
 
-	public constructor (
-		text: GetterOfOr<string>,
-		private color = Color.WHITE,
-		private scale = 1,
-	) {
+	public constructor (text: GetterOfOr<string>) {
 		super();
 		this.setText(text);
 	}
@@ -90,22 +85,8 @@ export default class Text extends Element {
 		return this;
 	}
 
-	public setColor (color: Color) {
-		this.color = color;
-		this.markNeedsRerender();
-		return this;
-	}
-
-	public setScale (scale: number) {
-		this.scale = scale;
-		this.markNeedsReflow();
-		return this;
-	}
-
 	protected equals (element: Text) {
-		return this.text === element.text
-			&& this.color === element.color
-			&& this.scale === element.scale;
+		return this.text === element.text;
 	}
 
 	protected override refresh () {
@@ -120,18 +101,21 @@ export default class Text extends Element {
 	protected override reflow () {
 		return {
 			width: this.calculateWidth(),
-			height: CHAR_HEIGHT * this.scale,
+			height: CHAR_HEIGHT * this.getStyle("scale"),
 		};
 	}
 
 	protected override async render (canvas: Canvas) {
+		const scale = this.getStyle("scale");
+		const color = this.getStyle("color");
+
 		const svg = document.createElementNS(SVG, "svg");
 		const filter = document.createElementNS(SVG, "filter");
-		filter.id = this.color.getID();
+		filter.id = color.getID();
 		const matrix = document.createElementNS(SVG, "feColorMatrix");
 		matrix.setAttribute("type", "matrix");
 		matrix.setAttribute("color-interpolation-filters", "sRGB");
-		matrix.setAttribute("values", this.color.getSVGColorMatrix());
+		matrix.setAttribute("values", color.getSVGColorMatrix());
 		filter.appendChild(matrix);
 		svg.appendChild(filter);
 		document.body.appendChild(svg);
@@ -148,10 +132,10 @@ export default class Text extends Element {
 				await sprite.loaded;
 				const def = fontSpriteDefinitions[fontSprite];
 				canvas.context.imageSmoothingEnabled = false;
-				sprite.render(canvas, x, 0, CHAR_WIDTH * this.scale, CHAR_HEIGHT * this.scale, typeof def === "number" ? 0 : (code - def.start) * CHAR_WIDTH, 0, CHAR_WIDTH, CHAR_HEIGHT);
+				sprite.render(canvas, x, 0, CHAR_WIDTH * scale, CHAR_HEIGHT * scale, typeof def === "number" ? 0 : (code - def.start) * CHAR_WIDTH, 0, CHAR_WIDTH, CHAR_HEIGHT);
 			}
 
-			x += (characterWidthExceptions[char] ?? CHAR_WIDTH) * this.scale;
+			x += (characterWidthExceptions[char] ?? CHAR_WIDTH) * scale;
 		}
 
 		canvas.context.filter = "none";
@@ -172,13 +156,12 @@ export default class Text extends Element {
 	}
 
 	private calculateWidth () {
-		if (this.shouldRefresh)
-			this.forceRefresh();
+		this.forceRefresh();
 
 		let width = 0;
 		for (const char of this.text)
 			width += (characterWidthExceptions[char] ?? CHAR_WIDTH);
 
-		return width * this.scale;
+		return width * this.getStyle("scale");
 	}
 }
