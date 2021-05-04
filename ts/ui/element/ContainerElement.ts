@@ -56,13 +56,29 @@ export default abstract class ContainerElement<INFO extends IElementInfo = IElem
 
 	protected abstract flow (): INFO;
 
+	private deferredContainer: ContainerElement = this;
+	protected setDeferredContainer (container: ContainerElement = this) {
+		this.deferredContainer = container;
+		return this;
+	}
+
 	public add (...elements: ResolveableChild[]) {
+		this.deferredContainer.addInternal(...elements);
+		return this;
+	}
+
+	private addInternal (...elements: ResolveableChild[]) {
 		this.unresolvedChildren.push(...elements);
 		this.markNeedsRefresh();
 		return this;
 	}
 
 	public empty () {
+		this.deferredContainer.clearInternal();
+		return this;
+	}
+
+	private clearInternal () {
 		this.markNeedsReflow();
 		this.unresolvedChildren.splice(0, Infinity);
 		this.children.splice(0, Infinity);
