@@ -1,4 +1,5 @@
-import Events, { EventBus, EventEmitter, EventHost } from "Events";
+import EventEmitter, { EventHost } from "@@wayward/excevent/Emitter";
+import Events, { EventBus } from "Events";
 import Bound from "util/decorator/Bound";
 import { Point, Rectangle } from "util/Geometry";
 import Canvas from "./Canvas";

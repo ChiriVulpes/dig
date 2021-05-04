@@ -1,4 +1,5 @@
-import Events, { EventBus, IEventApi } from "Events";
+import { IEventApi } from "@@wayward/excevent/IExcevent";
+import Events, { EventBus } from "Events";
 import Tile from "game/Tile";
 import { GameState, TILE, TILES } from "../Constants";
 import { Stats } from "../game/Stats";

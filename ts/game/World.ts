@@ -1,4 +1,5 @@
-import Events, { EventBus, EventHost } from "Events";
+import { EventHost } from "@@wayward/excevent/Emitter";
+import Events, { EventBus } from "Events";
 import { GameState, TILES } from "../Constants";
 import { Particles } from "../ui/Particles";
 import Direction, { Directions } from "../util/Direction";

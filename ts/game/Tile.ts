@@ -1,4 +1,6 @@
-import Events, { EventBus, EventHost, EventsOf, IEventApi } from "Events";
+import { EventHost } from "@@wayward/excevent/Emitter";
+import { IEventApi } from "@@wayward/excevent/IExcevent";
+import Events, { EventBus, EventsOf } from "Events";
 import { Cursor, IHasCustomCursor } from "ui/Cursor";
 import { IMouseEvents, ITarget, Mouse } from "ui/Mouse";
 import Strings from "util/Strings";

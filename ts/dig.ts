@@ -1,3 +1,5 @@
+import { EventHost } from "@@wayward/excevent/Emitter";
+import Events, { EventBus } from "Events";
 import CursorHandler from "ui/Cursor";
 import { TILE, TILES } from "./Constants";
 import { Stats } from "./game/Stats";
@@ -8,6 +10,14 @@ import { Particles } from "./ui/Particles";
 import { Ui } from "./ui/Ui";
 import { View } from "./ui/View";
 import Sound from "./util/Sound";
+
+export interface IMainEvents {
+	update (): any;
+}
+
+@Events.Bus(EventBus.Main)
+export class Main extends EventHost(Events)<IMainEvents> { }
+const main = new Main();
 
 
 ////////////////////////////////////
@@ -63,6 +73,7 @@ function update () {
 	world.update();
 	particles.update();
 	view.update(stats);
+	main.event.emit("update");
 }
 
 let lastFrame = 0;

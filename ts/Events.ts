@@ -1,4 +1,5 @@
 import Excevent from "@@wayward/excevent/Excevent";
+import { Main } from "dig";
 import { Stats } from "game/Stats";
 import Tile from "game/Tile";
 import World from "game/World";
@@ -7,6 +8,7 @@ import { Ui } from "ui/Ui";
 import { View } from "ui/View";
 
 export enum EventBus {
+	Main,
 	Mouse,
 	Stats,
 	Tile,
@@ -16,6 +18,7 @@ export enum EventBus {
 }
 
 export interface IEventBuses {
+	[EventBus.Main]: typeof Main;
 	[EventBus.Mouse]: typeof Mouse;
 	[EventBus.Stats]: typeof Stats;
 	[EventBus.Tile]: typeof Tile;
@@ -26,6 +29,5 @@ export interface IEventBuses {
 
 export default new Excevent<IEventBuses>();
 
-export { default as EventEmitter, EventHost } from "@@wayward/excevent/Emitter";
-export { Events as EventsOf, IEventApi } from "@@wayward/excevent/IExcevent";
+export { Events as EventsOf } from "@@wayward/excevent/IExcevent";
 
