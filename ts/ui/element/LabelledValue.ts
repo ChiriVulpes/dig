@@ -5,7 +5,7 @@ import { Color } from "util/Color";
 export default class LabelledValue extends FlowContainerElement {
 
 	private readonly label = new FlowContainerElement()
-		.setStyle("color", Color.fromInt(0xAAAAAA));
+		.setStyle("color", Color.fromInt(0xCCCCCC));
 	private readonly contents = new FlowContainerElement();
 
 	public constructor () {

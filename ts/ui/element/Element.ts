@@ -2,7 +2,7 @@ import { EventHost } from "@@wayward/excevent/Emitter";
 import { Class, EventBusOrHost, IEventApi } from "@@wayward/excevent/IExcevent";
 import Events, { EventsOf, IEventBuses } from "Events";
 import Canvas from "ui/Canvas";
-import Style, { IStyle } from "ui/element/Style";
+import Style, { IStyle, StyleProperty } from "ui/element/Style";
 import Bound from "util/decorator/Bound";
 
 export interface IElementEvents {
@@ -55,7 +55,7 @@ export default abstract class Element<INFO extends IElementInfo = IElementInfo> 
 
 	private style?: Style;
 	public getStyle<P extends keyof IStyle> (property: P): IStyle[P] {
-		return this.style?.[property] as IStyle[P] | undefined
+		return this.style?.get(property)
 			?? this.parent?.getStyle(property)
 			?? Style.DEFAULT[property];
 	}
@@ -65,12 +65,7 @@ export default abstract class Element<INFO extends IElementInfo = IElementInfo> 
 			const style = this.style = new Style();
 			this.event.emit("changeStyle", style);
 			this.event.until(["changeStyle", "dispose"], subscriber => subscriber
-				.subscribe(style, "change", (_, property) => {
-					switch (property.name) {
-						case "color": return this.markNeedsRerender();
-						case "scale": return this.markNeedsReflow();
-					}
-				}));
+				.subscribe(style, "change", this.onChangeStyle));
 		}
 
 		if (this.style) {
@@ -81,6 +76,16 @@ export default abstract class Element<INFO extends IElementInfo = IElementInfo> 
 		}
 
 		return this;
+	}
+
+	@Bound private onChangeStyle (api: IEventApi<Style>, property: StyleProperty) {
+		switch (property.name) {
+			case "color":
+			case "shadow":
+				return this.markNeedsRerender();
+			case "scale":
+				return this.markNeedsReflow();
+		}
 	}
 
 	protected abstract refresh (): void;

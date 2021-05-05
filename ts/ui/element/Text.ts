@@ -1,6 +1,7 @@
 import Canvas from "ui/Canvas";
 import Element from "ui/element/Element";
 import Sprite from "ui/Sprite";
+import { Color } from "util/Color";
 import Enums from "util/Enums";
 import { GetterOfOr } from "util/type";
 
@@ -108,19 +109,28 @@ export default class Text extends Element {
 	protected override async render (canvas: Canvas) {
 		const scale = this.getStyle("scale");
 		const color = this.getStyle("color");
+		const shadow = this.getStyle("shadow");
+		await this.renderText(canvas, shadow, scale, 1);
+		await this.renderText(canvas, color, scale);
+	}
 
-		const svg = document.createElementNS(SVG, "svg");
-		const filter = document.createElementNS(SVG, "filter");
-		filter.id = color.getID();
-		const matrix = document.createElementNS(SVG, "feColorMatrix");
-		matrix.setAttribute("type", "matrix");
-		matrix.setAttribute("color-interpolation-filters", "sRGB");
-		matrix.setAttribute("values", color.getSVGColorMatrix());
-		filter.appendChild(matrix);
-		svg.appendChild(filter);
-		document.body.appendChild(svg);
+	private async renderText (canvas: Canvas, color: Color, scale: number, y = 0) {
+		const isWhite = Color.equals(color, Color.WHITE);
+		let svg: SVGSVGElement | undefined;
+		if (!isWhite) {
+			svg = document.createElementNS(SVG, "svg");
+			const filter = document.createElementNS(SVG, "filter");
+			filter.id = color.getID();
+			const matrix = document.createElementNS(SVG, "feColorMatrix");
+			matrix.setAttribute("type", "matrix");
+			matrix.setAttribute("color-interpolation-filters", "sRGB");
+			matrix.setAttribute("values", color.getSVGColorMatrix());
+			filter.appendChild(matrix);
+			svg.appendChild(filter);
+			document.body.appendChild(svg);
 
-		canvas.context.filter = `url(#${filter.id})`;
+			canvas.context.filter = `url(#${filter.id})`;
+		}
 
 		let x = 0;
 		for (let i = 0; i < this.text.length; i++) {
@@ -132,14 +142,16 @@ export default class Text extends Element {
 				await sprite.loaded;
 				const def = fontSpriteDefinitions[fontSprite];
 				canvas.context.imageSmoothingEnabled = false;
-				sprite.render(canvas, x, 0, CHAR_WIDTH * scale, CHAR_HEIGHT * scale, typeof def === "number" ? 0 : (code - def.start) * CHAR_WIDTH, 0, CHAR_WIDTH, CHAR_HEIGHT);
+				sprite.render(canvas, x, y, CHAR_WIDTH * scale, CHAR_HEIGHT * scale, typeof def === "number" ? 0 : (code - def.start) * CHAR_WIDTH, 0, CHAR_WIDTH, CHAR_HEIGHT);
 			}
 
 			x += (characterWidthExceptions[char] ?? CHAR_WIDTH) * scale;
 		}
 
-		canvas.context.filter = "none";
-		svg.remove();
+		if (svg) {
+			canvas.context.filter = "none";
+			svg.remove();
+		}
 	}
 
 	private getFontSprite (char: number) {
