@@ -172,12 +172,22 @@ export default abstract class Element<INFO extends IElementInfo = IElementInfo> 
 		return this;
 	}
 
-	public setRefreshOn<ON extends EventBusOrHost<IEventBuses>, EVENT extends keyof EventsOf<ON, IEventBuses>> (on: ON, event: EVENT) {
+	public setRefreshOn<ON extends EventBusOrHost<IEventBuses>, EVENT extends keyof EventsOf<ON, IEventBuses>> (on: ON, event: EVENT, when?: () => boolean) {
 		this.event.until("dispose", subscriber => subscriber
 			.subscribe(on, event, ((api: IEventApi<any, any>) => {
-				this.forceRefresh();
+				if (when?.() !== false)
+					this.forceRefresh();
 				api.disregard = true;
 			}) as any));
 		return this;
+	}
+
+	private values: Record<string, any> = {};
+	public valueChanged (id: string, value: any) {
+		if (this.values[id] === value)
+			return false;
+
+		this.values[id] = value;
+		return true;
 	}
 }
