@@ -43,7 +43,7 @@ type TileDescriptionMouseHandler = {
 };
 
 interface ITileDescription extends TileDescriptionMouseHandler {
-	cursor?: Cursor;
+	cursor?: Cursor | ((tile: Tile) => Cursor | undefined);
 	hitSound?: SoundType;
 	breakSound?: SoundType;
 	breakable?: DamageType;
@@ -190,9 +190,12 @@ export default class Tile extends EventHost(Events)<EventsOf<ITarget>> implement
 	private revealed?: boolean;
 
 	public get cursor () {
+		if (this.canPerformAssay())
+			return Cursor.Assay;
+
 		const result = getProperty(this.type, "cursor");
 		if (result !== undefined)
-			return result;
+			return typeof result === "function" ? result(this) : result;
 
 		if (this.isMineable())
 			return Cursor.Mine;
@@ -424,14 +427,17 @@ export default class Tile extends EventHost(Events)<EventsOf<ITarget>> implement
 		this.damage(DamageType.Mining);
 	}
 
+	private canPerformAssay () {
+		return (this.getLight() ?? 0) <= 0 && this.context.world.stats.score >= this.context.world.stats.assayCost;
+	}
+
 	@EventHost.Handler(Tile, "mouseRightClick")
 	protected onMouseRightClick (api: IEventApi<Tile>, mouse: Mouse) {
 		if (this.handleMouseEvent(api, mouse) === false)
 			return;
 
-		if ((this.getLight() ?? 0) > 0 || this.context.world.stats.score < this.context.world.stats.assayCost)
+		if (!this.canPerformAssay())
 			return;
-
 
 		// perform assay
 		let revealedAny = false;
