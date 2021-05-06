@@ -4,6 +4,7 @@ import { GameState } from "../Constants";
 import { Stats } from "../game/Stats";
 import Canvas from "./Canvas";
 
+@Events.Subscribe
 @Events.Bus(EventBus.Ui)
 export class Ui {
 

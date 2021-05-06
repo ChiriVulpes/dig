@@ -101,6 +101,9 @@ export class View {
 
 	@Events.Handler(EventBus.Mouse, "getTarget")
 	protected getTarget (api: IEventApi<Mouse>) {
+		if (this.world.stats.state === GameState.FellBehind)
+			return undefined;
+
 		let [x, y] = api.host.point;
 		y += this.y;
 
