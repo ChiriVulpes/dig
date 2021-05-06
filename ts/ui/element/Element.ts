@@ -43,6 +43,14 @@ export default abstract class Element<INFO extends IElementInfo = IElementInfo> 
 		return this._pendingInfo;
 	}
 
+	public get width () {
+		return this.info?.width ?? 0;
+	}
+
+	public get height () {
+		return this.info?.height ?? 0;
+	}
+
 	private static readonly leakMap = new Map<Class<Element>, Set<Element>>();
 
 	public constructor () {
@@ -65,7 +73,7 @@ export default abstract class Element<INFO extends IElementInfo = IElementInfo> 
 			const style = this.style = new Style();
 			this.event.emit("changeStyle", style);
 			this.event.until(["changeStyle", "dispose"], subscriber => subscriber
-				.subscribe(style, "change", this.onChangeStyle));
+				.subscribe(style, "change", (_, property) => this.onChangeStyle(property)));
 		}
 
 		if (this.style) {
@@ -78,9 +86,9 @@ export default abstract class Element<INFO extends IElementInfo = IElementInfo> 
 		return this;
 	}
 
-	@Bound private onChangeStyle (api: IEventApi<Style>, property: StyleProperty) {
+	protected onChangeStyle (property: StyleProperty) {
 		switch (property.name) {
-			case "color":
+			case "colour":
 			case "shadow":
 				return this.markNeedsRerender();
 			case "scale":

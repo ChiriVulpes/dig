@@ -1,10 +1,9 @@
+export default class Colour {
 
-export class Color {
+	public static readonly BLACK = new Colour(0, 0, 0);
+	public static readonly WHITE = new Colour(255, 255, 255);
 
-	public static readonly BLACK = new Color(0, 0, 0);
-	public static readonly WHITE = new Color(255, 255, 255);
-
-	public constructor (public readonly red: number, public readonly blue: number, public readonly green: number) {
+	public constructor (public readonly red: number, public readonly green: number, public readonly blue: number) {
 	}
 
 	public getID () {
@@ -15,8 +14,8 @@ export class Color {
 		return `${this.red / 255} 0 0 0 0 0 ${this.green / 255} 0 0 0 0 0 ${this.blue / 255} 0 0 0 0 0 1 0`;
 	}
 
-	public static fromInt (int: number): Color {
-		return new Color((int >> 16) & 0xFF, (int >> 8) & 0xFF, int & 0xFF);
+	public static fromInt (int: number): Colour {
+		return new Colour((int >> 16) & 0xFF, (int >> 8) & 0xFF, int & 0xFF);
 	}
 
 	public toInt () {
@@ -26,7 +25,7 @@ export class Color {
 		return int;
 	}
 
-	public static equals (color1: Color, color2: Color) {
+	public static equals (color1: Colour, color2: Colour) {
 		return color1.red === color2.red
 			&& color1.green === color2.green
 			&& color1.blue === color2.blue;

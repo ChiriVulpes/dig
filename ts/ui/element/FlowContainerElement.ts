@@ -1,13 +1,8 @@
 import Canvas from "ui/Canvas";
 import ContainerElement, { SYMBOL_NEWLINE } from "ui/element/ContainerElement";
 import Element, { IElementInfo } from "ui/element/Element";
+import { Align } from "ui/element/Style";
 import { Size } from "util/Geometry";
-
-export enum Align {
-	Left,
-	Centre,
-	Right,
-}
 
 interface ILine {
 	index: number;
@@ -21,13 +16,6 @@ export interface IFlowLayoutInformation extends IElementInfo {
 }
 
 export default class FlowContainerElement extends ContainerElement<IFlowLayoutInformation> {
-
-	private align = Align.Left;
-
-	public setAlign (align: Align) {
-		this.align = align;
-		return this;
-	}
 
 	protected container?: Size;
 	public setContainedDimensions (...size: Size) {
@@ -108,7 +96,7 @@ export default class FlowContainerElement extends ContainerElement<IFlowLayoutIn
 			const [lineWidth, lineHeight] = line?.dimensions ?? [0, 0];
 
 			if (x === undefined) {
-				switch (this.align) {
+				switch (this.getStyle("align")) {
 					case Align.Left:
 						x = 0;
 						break;

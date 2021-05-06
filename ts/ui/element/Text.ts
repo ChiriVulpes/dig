@@ -1,7 +1,7 @@
 import Canvas from "ui/Canvas";
 import Element from "ui/element/Element";
 import Sprite from "ui/Sprite";
-import { Color } from "util/Color";
+import Colour from "util/Color";
 import Enums from "util/Enums";
 import { GetterOfOr } from "util/type";
 
@@ -108,23 +108,23 @@ export default class Text extends Element {
 
 	protected override async render (canvas: Canvas) {
 		const scale = this.getStyle("scale");
-		const color = this.getStyle("color");
+		const colour = this.getStyle("colour");
 		const shadow = this.getStyle("shadow");
 		await this.renderText(canvas, shadow, scale, 1);
-		await this.renderText(canvas, color, scale);
+		await this.renderText(canvas, colour, scale);
 	}
 
-	private async renderText (canvas: Canvas, color: Color, scale: number, y = 0) {
-		const isWhite = Color.equals(color, Color.WHITE);
+	private async renderText (canvas: Canvas, colour: Colour, scale: number, y = 0) {
+		const isWhite = Colour.equals(colour, Colour.WHITE);
 		let svg: SVGSVGElement | undefined;
 		if (!isWhite) {
 			svg = document.createElementNS(SVG, "svg");
 			const filter = document.createElementNS(SVG, "filter");
-			filter.id = color.getID();
+			filter.id = colour.getID();
 			const matrix = document.createElementNS(SVG, "feColorMatrix");
 			matrix.setAttribute("type", "matrix");
 			matrix.setAttribute("color-interpolation-filters", "sRGB");
-			matrix.setAttribute("values", color.getSVGColorMatrix());
+			matrix.setAttribute("values", colour.getSVGColorMatrix());
 			filter.appendChild(matrix);
 			svg.appendChild(filter);
 			document.body.appendChild(svg);

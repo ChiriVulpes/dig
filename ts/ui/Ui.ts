@@ -1,4 +1,5 @@
 import Events, { EventBus } from "Events";
+import AbilitiesElement from "ui/hud/Abilities";
 import ScoreElement from "ui/hud/Score";
 import { GameState } from "../Constants";
 import { Stats } from "../game/Stats";
@@ -8,6 +9,7 @@ import Canvas from "./Canvas";
 export class Ui {
 
 	private score = new ScoreElement(this.stats);
+	private abilities = new AbilitiesElement(this.stats);
 
 	// private abilities = new MutableText(() => [
 	// 	"ABILITIES: Right Click",
@@ -59,11 +61,10 @@ export class Ui {
 		// 		canvas.height - height - 30 + Math.floor(Math.sin(this.stats.tick / 40) * 5));
 		// }
 
-		this.score.draw(canvas, 5, canvas.height - (this.score.info?.height ?? 0) - 2);
+		this.score.draw(canvas, 5, canvas.height - this.score.height - 2);
 
 		// if (this.stats.state === GameState.Mining && (this.stats.explosives !== NOT_DISCOVERED || this.stats.discoveredAssays)) {
-		// 	[width, height] = this.abilities.getLayout() ?? [0, 0];
-		// 	this.abilities.render(canvas, canvas.width - width - 5, canvas.height - height - 2);
+		this.abilities.draw(canvas, canvas.width - this.abilities.width - 5, canvas.height - this.abilities.height - 2);
 		// }
 	}
 

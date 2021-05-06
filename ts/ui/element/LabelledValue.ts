@@ -1,11 +1,11 @@
 import { ResolveableChild } from "ui/element/ContainerElement";
 import FlowContainerElement from "ui/element/FlowContainerElement";
-import { Color } from "util/Color";
+import Colour from "util/Color";
 
 export default class LabelledValue extends FlowContainerElement {
 
 	private readonly label = new FlowContainerElement()
-		.setStyle("color", Color.fromInt(0xCCCCCC));
+		.setStyle("colour", Colour.fromInt(0xCCCCCC));
 	private readonly contents = new FlowContainerElement();
 
 	public constructor () {
