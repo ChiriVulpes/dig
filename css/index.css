@@ -6,6 +6,7 @@ body {
   align-items: center;
   height: 100vh;
   color: #9bd1ec;
+  cursor: url("../sprite/cursor/default.png") 2 2, default;
 }
 
 canvas {
@@ -49,6 +50,38 @@ li::marker {
   position: fixed;
   bottom: 30px;
   left: 30px;
+}
+
+a, button {
+  cursor: url("../sprite/cursor/pointer.png") 2 2, pointer;
+}
+
+.cursor-default {
+  cursor: url("../sprite/cursor/default.png") 2 2, default;
+}
+
+.cursor-pointer {
+  cursor: url("../sprite/cursor/pointer.png") 2 2, pointer;
+}
+
+.cursor-grab {
+  cursor: url("../sprite/cursor/grab.png") 2 6, grab;
+}
+
+.cursor-grabbing {
+  cursor: url("../sprite/cursor/grabbing.png") 2 2, grabbing;
+}
+
+.cursor-mine {
+  cursor: url("../sprite/cursor/mine.png") 2 2, pointer;
+}
+
+.cursor-assay {
+  cursor: url("../sprite/cursor/assay.png") 2 2, pointer;
+}
+
+.cursor-grab-ignite {
+  cursor: url("../sprite/cursor/grab-ignite.png") 2 6, pointer;
 }
 
 /*# sourceMappingURL=index.css.map */
