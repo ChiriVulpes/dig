@@ -1,5 +1,6 @@
 import { EventHost } from "@@wayward/excevent/Emitter";
 import Element, { IElementInfo } from "ui/element/Element";
+import { INHERITED_STYLES, StyleProperty } from "ui/element/Style";
 import Text from "ui/element/Text";
 import Bound from "util/decorator/Bound";
 import { ArrayOr, GetterOfOr } from "util/type";
@@ -137,5 +138,13 @@ export default abstract class ContainerElement<INFO extends IElementInfo = IElem
 
 	@Bound private refreshInternal () {
 		super.forceRefresh();
+	}
+
+	public override notifyStyleChange (property: StyleProperty) {
+		if (INHERITED_STYLES[property.name])
+			for (const child of this.pendingChildren ?? this.children)
+				if (!(child as Partial<Element>).hasStyle?.(property.name))
+					(child as Partial<Element>).notifyStyleChange?.(property);
+		super.notifyStyleChange(property);
 	}
 }

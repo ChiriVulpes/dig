@@ -128,7 +128,7 @@ export default class FlowContainerElement extends ContainerElement<IFlowContaine
 		}
 	}
 
-	protected override onChangeStyle (property: StyleProperty) {
+	public override notifyStyleChange (property: StyleProperty) {
 		switch (property.name) {
 			case "align":
 				this.markNeedsRerender();
@@ -137,9 +137,7 @@ export default class FlowContainerElement extends ContainerElement<IFlowContaine
 			case "maxHeight":
 			case "padding":
 				this.markNeedsReflow();
-				break;
-			default:
-				super.onChangeStyle(property);
 		}
+		super.notifyStyleChange(property);
 	}
 }

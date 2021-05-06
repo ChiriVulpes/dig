@@ -78,12 +78,16 @@ export default abstract class Element<INFO extends IElementInfo = IElementInfo> 
 			?? Style.DEFAULT[property];
 	}
 
+	public hasStyle (property: keyof IStyle) {
+		return this.style?.get(property) !== undefined;
+	}
+
 	public setStyle<P extends keyof IStyle> (property: P, value?: IStyle[P]) {
 		if (!this.style && value !== undefined) {
 			const style = this.style = new Style();
 			this.event.emit("changeStyle", style);
 			this.event.until(["changeStyle", "dispose"], subscriber => subscriber
-				.subscribe(style, "change", (_, property) => this.onChangeStyle(property)));
+				.subscribe(style, "change", (_, property) => this.notifyStyleChange(property)));
 		}
 
 		if (this.style) {
@@ -96,7 +100,7 @@ export default abstract class Element<INFO extends IElementInfo = IElementInfo> 
 		return this;
 	}
 
-	protected onChangeStyle (property: StyleProperty) {
+	public notifyStyleChange (property: StyleProperty) {
 		switch (property.name) {
 			case "colour":
 			case "shadow":
