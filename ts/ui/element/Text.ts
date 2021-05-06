@@ -195,7 +195,7 @@ export default class Text extends Element {
 				const def = fontSpriteDefinitions[fontSprite];
 				const index = getSpriteIndexOffset(def, code);
 				canvas.context.imageSmoothingEnabled = false;
-				sprite.render(canvas, x, y, width * scale, CHAR_HEIGHT * scale, index, 0, width, CHAR_HEIGHT);
+				sprite.render(canvas, x, y * scale, width * scale, CHAR_HEIGHT * scale, index, 0, width, CHAR_HEIGHT);
 			}
 
 			x += width * scale;

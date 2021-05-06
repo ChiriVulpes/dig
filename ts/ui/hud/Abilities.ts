@@ -7,6 +7,7 @@ import LabelledValue from "ui/element/LabelledValue";
 import Scheme from "ui/element/Scheme";
 import { Align } from "ui/element/Style";
 import Text from "ui/element/Text";
+import Watch from "util/Watch";
 
 export default class AbilitiesElement extends EphemeralElement {
 	public constructor (stats: Stats) {
@@ -23,13 +24,13 @@ export default class AbilitiesElement extends EphemeralElement {
 				.add(new LabelledValue()
 					.setLabel("Assay Cost")
 					.add(new Text(() => `$${stats.assayCost}`)
-						.setRefreshOn(EventBus.Main, "update", () => this.valueChanged("assay", stats.assayCost)))))
+						.setRefreshOn(EventBus.Main, "update", Watch(() => stats.assayCost)))))
 			.add(SYMBOL_NEWLINE)
 			.add(new EphemeralElement(() => stats.explosives !== NOT_DISCOVERED)
 				.add(new LabelledValue()
 					.setLabel("Explosives")
 					.add(new Text("Have ").setStyle("colour", Scheme.COLOUR_FOREGROUND_TERTIARY))
 					.add(new Text(() => `${stats.explosives}`)
-						.setRefreshOn(EventBus.Main, "update", () => this.valueChanged("explosives", stats.explosives)))));
+						.setRefreshOn(EventBus.Main, "update", Watch(() => stats.explosives)))));
 	}
 }

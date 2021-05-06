@@ -157,13 +157,12 @@ export default abstract class Element<INFO extends IElementInfo = IElementInfo> 
 			result.setSize(width, height);
 
 			await this.render(result, info);
-
-			this.image = result;
-			this._info = this._pendingInfo;
-			this.shouldRerender = false;
-			this.event.emit("render");
 		}
 
+		this.image = result;
+		this._info = this._pendingInfo;
+		this.shouldRerender = false;
+		this.event.emit("render");
 		this.generating = false;
 	}
 
@@ -187,14 +186,5 @@ export default abstract class Element<INFO extends IElementInfo = IElementInfo> 
 				api.disregard = true;
 			}) as any));
 		return this;
-	}
-
-	private values: Record<string, any> = {};
-	public valueChanged (id: string, value: any) {
-		if (this.values[id] === value)
-			return false;
-
-		this.values[id] = value;
-		return true;
 	}
 }
