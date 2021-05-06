@@ -1,3 +1,4 @@
+import Events, { EventBus } from "Events";
 import { GameState, TILES } from "../Constants";
 import { TileType } from "./Tile";
 
@@ -6,6 +7,7 @@ export const COST_ASSAY = 1000;
 
 const LOCAL_STORAGE_KEY_SCORES = "scores";
 
+@Events.Bus(EventBus.Stats)
 export class Stats {
 	public dug!: number;
 	public turn!: number;

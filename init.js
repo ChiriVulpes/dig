@@ -32,6 +32,16 @@
 	 * @param {ModuleInitializer} fn
 	 */
 	function define (name, reqs, fn) {
+		if (Array.isArray(name)) {
+			fn = reqs;
+			reqs = name;
+			name = document.currentScript.getAttribute("src");
+			if (name.startsWith("/node_modules/"))
+				name = `@${name.slice("/node_modules/".length)}`;
+			if (name.endsWith(".js"))
+				name = `${name.slice(0, -3)}`;
+		}
+
 		if (moduleMap.has(name))
 			throw new Error(`Module "${name}" cannot be redefined`);
 
@@ -41,7 +51,7 @@
 		const module = {
 			_name: name,
 			_state: ModuleState.Unprocessed,
-			_requirements: reqs.slice(2).map(req => req),
+			_requirements: reqs.slice(2).map(req => findModuleName(name, req)),
 			_initializer: fn,
 		};
 		moduleMap.set(name, module);
@@ -108,10 +118,30 @@
 
 	let initialProcessCompleted = false;
 	async function processModules () {
+		while (requirements.size) {
+			const remainingRequirements = Array.from(requirements);
+			await Promise.all(remainingRequirements.map(tryImportAdditionalModule));
+			for (const req of remainingRequirements)
+				requirements.delete(req);
+		}
+
 		for (const [name, module] of moduleMap.entries())
 			processModule(name, module);
 
 		initialProcessCompleted = true;
+	}
+
+	/**
+	 * @param {string} req 
+	 */
+	async function tryImportAdditionalModule (req) {
+		if (moduleMap.has(req))
+			return;
+
+		await importAdditionalModule(req);
+
+		if (!moduleMap.has(req))
+			throw new Error(`The required module '${req}' could not be asynchronously loaded.`);
 	}
 
 	/**
@@ -122,7 +152,7 @@
 		document.head.appendChild(script);
 		/** @type {Promise<void>} */
 		const promise = new Promise(resolve => script.addEventListener("load", () => resolve()));
-		script.src = `/js/${req}.js`;
+		script.src = req[0] === "@" ? `/node_modules/${req.slice(1)}.js` : `/js/${req}.js`;
 		return promise;
 	}
 
@@ -148,5 +178,40 @@
 		}
 
 		return module;
+	}
+
+
+	////////////////////////////////////
+	// Utils
+	//
+
+	/**
+	 * @param {string} name 
+	 * @param {string} requirement 
+	 */
+	function findModuleName (name, requirement) {
+		let root = dirname(name);
+		if (requirement.startsWith("./"))
+			return join(root, requirement.slice(2));
+
+		while (requirement.startsWith("../"))
+			root = dirname(root), requirement = requirement.slice(3);
+
+		return requirement;
+	}
+
+	/**
+	 * @param {string} name 
+	 */
+	function dirname (name) {
+		const lastIndex = name.lastIndexOf("/");
+		return lastIndex === -1 ? "" : name.slice(0, lastIndex);
+	}
+
+	/**
+	 * @param  {...string} path 
+	 */
+	function join (...path) {
+		return path.filter(p => p).join("/");
 	}
 })();

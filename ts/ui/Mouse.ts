@@ -1,37 +1,55 @@
-import { GameState, TILE, TILES } from "../Constants";
-import Tile from "../game/Tile";
-import World from "../game/World";
+import EventEmitter, { EventHost } from "@@wayward/excevent/Emitter";
+import Events, { EventBus } from "Events";
+import Bound from "util/decorator/Bound";
+import { Point, Rectangle } from "util/Geometry";
 import Canvas from "./Canvas";
-import { Ui } from "./Ui";
-import { View } from "./View";
 
 type CursorEvent = Partial<MouseEvent> & Partial<TouchEvent>;
 
-export interface IMouseEventHandler {
-	onMouseEnter?(): any;
-	onMouseLeave?(): any;
-	onMouseMove?(x: number, y: number): any;
-	onMouseDown?(x: number, y: number): any;
-	onMouseUp?(x: number, y: number): any;
-	onMouseClick?(x: number, y: number): any;
-	onMouseRightClick?(x: number, y: number): any;
-	onMouseHold?(x: number, y: number): any;
+export interface IMouseEvents {
+	enter (target: ITarget): any;
+	leave (oldTarget: ITarget): any;
+	changeTarget (target?: ITarget): any;
+	move (x: number, y: number): any;
+	down (x: number, y: number): any;
+	up (x: number, y: number): any;
+	click (x: number, y: number): any;
+	rightClick (x: number, y: number): any;
+	hold (x: number, y: number): any;
+	getTarget (): ITarget | undefined;
 }
 
-export class Mouse {
+interface IMouseTargetEvents {
+	mouseEnter (mouse: Mouse): any;
+	mouseLeave (mouse: Mouse): any;
+	mouseMove (mouse: Mouse): any;
+	mouseDown (mouse: Mouse): any;
+	mouseUp (mouse: Mouse): any;
+	mouseClick (mouse: Mouse): any;
+	mouseRightClick (mouse: Mouse): any;
+	mouseHold (mouse: Mouse): any;
+}
 
-	public tile?: Tile;
+export interface ITarget {
+	surface?: Rectangle;
+	event: EventEmitter<ITarget, IMouseTargetEvents>;
+}
+
+@Events.Bus(EventBus.Mouse)
+export class Mouse extends EventHost(Events)<IMouseEvents> {
+
+	public target?: ITarget;
 	private held = false;
 
-	private x = 0;
-	private y = 0;
+	public point: Point = [NaN, NaN];
 
-	private canvas?: Canvas;
-	private world?: World;
-	private view?: View;
-	private ui?: Ui;
+	public get isValid () {
+		return !isNaN(this.point[0]) && !isNaN(this.point[1]);
+	}
 
-	public constructor () {
+	public constructor (private readonly surface: Canvas) {
+		super();
+
 		window.addEventListener("mousemove", event => this.onMove(event));
 		window.addEventListener("click", event => this.onClick(event));
 		window.addEventListener("mousedown", event => this.onDown(event));
@@ -39,78 +57,77 @@ export class Mouse {
 		window.addEventListener("contextmenu", event => this.onRightClick(event));
 	}
 
-	public setCanvas (canvas: Canvas) {
-		this.canvas = canvas;
-		return this;
-	}
-
-	public setWorld (world: World) {
-		this.world = world;
-		return this;
-	}
-
-	public setView (view: View) {
-		this.view = view;
-		return this;
-	}
-
-	public setUi (ui: Ui) {
-		this.ui = ui;
-		return this;
-	}
-
 	public update () {
-		if (this.held)
-			this.tile?.onMouseHold(this.x, this.y);
+		if (this.held) {
+			this.event.emit("hold", ...this.point);
+			this.target?.event.emit("mouseHold", this);
+		}
 	}
 
-	public updatePosition (event?: CursorEvent) {
-		const oldX = this.x;
-		const oldY = this.y;
-		const x = this.x = event?.clientX ?? event?.touches?.[0].clientX ?? this.x;
-		const y = this.y = event?.clientY ?? event?.touches?.[0].clientY ?? this.y;
+	public updateTarget () {
+		const oldTarget = this.target;
+		const target = !this.isValid ? undefined
+			: this.event.query("getTarget")
+				.get(this.isTargeting);
 
-		if (x !== oldX || y !== oldY)
-			this.emitMouseEvent("onMouseMove", this.ui);
+		if (oldTarget !== target) {
+			if (oldTarget) {
+				this.event.emit("leave", oldTarget);
+				oldTarget.event.emit("mouseLeave", this);
+			}
 
-		const newTile = this.calculateTarget(x, y);
-		if (this.tile === newTile)
+			if (target) {
+				this.event.emit("enter", target);
+				target.event.emit("mouseEnter", this);
+			}
+
+			this.target = target;
+			this.event.emit("changeTarget", target);
+		}
+	}
+
+	private updatePosition (event?: CursorEvent) {
+		const [oldX, oldY] = this.point;
+		const [x, y] = this.getPoint(event);
+
+		if (oldX === x && oldY === y)
 			return;
 
-		this.tile?.onMouseLeave();
-		this.tile = newTile ?? undefined;
-		newTile?.onMouseEnter();
+		this.point = [x, y];
+
+		this.updateTarget();
+
+		this.event.emit("move", x, y);
+		this.target?.event.emit("mouseMove", this);
 	}
 
-	private calculateTarget (x: number, y: number) {
-		if (!this.canvas || !this.world || !this.view)
-			return undefined;
-
-		const canvasOffset = this.canvas.getOffset();
-		x -= canvasOffset.x;
-		y -= canvasOffset.y;
-
-		const canvasSize = this.canvas.getDisplaySize()!;
-		if (x < 0 || x > canvasSize.x || y < 0 || y > canvasSize.y)
-			return undefined;
-
-		const size = TILES * TILE;
-		x *= size / canvasSize.x;
-		y *= size / canvasSize.y;
-
-		if (this.world.stats.state === GameState.FellBehind)
-			return undefined;
-
-		return this.calculateTileTarget(x, y);
+	@Bound private isTargeting (target: ITarget) {
+		return target.surface === undefined || Rectangle.intersects(...target.surface, ...this.point);
 	}
 
-	private calculateTileTarget (x: number, y: number) {
-		y += this.view!.y;
+	private getPoint (event?: CursorEvent): Point {
+		let x = event?.clientX ?? event?.touches?.[0].clientX ?? NaN;
+		let y = event?.clientY ?? event?.touches?.[0].clientY ?? NaN;
 
-		x = Math.floor(x / TILE);
-		y = Math.floor(y / TILE);
+		if (this.surface && !isNaN(x) && !isNaN(y)) {
+			const canvasOffset = this.surface.getOffset();
+			x -= canvasOffset.x;
+			y -= canvasOffset.y;
 
-		return this.world!.getTile(x, y);
+			const canvasSize = this.surface.getDisplaySize()!;
+			if (x >= 0 || x < canvasSize.x || y >= 0 || y < canvasSize.y) {
+				x *= this.surface.width / canvasSize.x;
+				y *= this.surface.height / canvasSize.y;
+			} else {
+				x = NaN;
+				y = NaN;
+			}
+		} else {
+			x = NaN;
+			y = NaN;
+		}
+
+		return [x, y];
 	}
 
 	private onMove (event: CursorEvent) {
@@ -119,7 +136,8 @@ export class Mouse {
 
 	private onClick (event: CursorEvent) {
 		this.updatePosition(event);
-		this.emitMouseEvent("onMouseClick", this.tile, this.ui);
+		this.event.emit("click", ...this.point);
+		this.target?.event.emit("mouseClick", this);
 	}
 
 	private onRightClick (event: CursorEvent) {
@@ -127,7 +145,8 @@ export class Mouse {
 			event.preventDefault?.();
 
 		this.updatePosition(event);
-		this.emitMouseEvent("onMouseRightClick", this.tile, this.ui);
+		this.event.emit("rightClick", ...this.point);
+		this.target?.event.emit("mouseRightClick", this);
 	}
 
 	private onDown (event: CursorEvent) {
@@ -136,18 +155,16 @@ export class Mouse {
 
 		this.updatePosition(event);
 		this.held = true;
-		this.emitMouseEvent("onMouseDown", this.tile, this.ui);
-		this.emitMouseEvent("onMouseHold", this.tile, this.ui);
+		this.event.emit("down", ...this.point);
+		this.target?.event.emit("mouseDown", this);
+		this.event.emit("hold", ...this.point);
+		this.target?.event.emit("mouseHold", this);
 	}
 
 	private onUp (event: CursorEvent) {
 		this.updatePosition(event);
-		this.emitMouseEvent("onMouseUp", this.tile, this.ui);
+		this.event.emit("up", ...this.point);
+		this.target?.event.emit("mouseUp", this);
 		this.held = false;
-	}
-
-	private emitMouseEvent (event: keyof IMouseEventHandler, ...handlers: (IMouseEventHandler | undefined)[]) {
-		for (const handler of handlers)
-			handler?.[event]?.(this.x, this.y);
 	}
 }

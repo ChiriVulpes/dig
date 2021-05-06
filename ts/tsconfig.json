@@ -6,7 +6,12 @@
 		"module": "AMD",
 		"outFile": "../js/index.js",
 		"inlineSourceMap": true,
-		"noImplicitOverride": true
+		"noImplicitOverride": true,
+		"baseUrl": ".",
+		"paths": {
+			"@*": ["../node_modules/*"]
+		},
+		"pretty": true
 	},
 	"include": ["**/*"]
 }

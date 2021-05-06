@@ -1,4 +1,8 @@
-import { TILE, TILES } from "./Constants";
+import { EventHost } from "@@wayward/excevent/Emitter";
+import Events, { EventBus } from "Events";
+import CursorHandler from "ui/Cursor";
+import applyFunctionPrototypes from "util/prototype/Function";
+import { CANVAS } from "./Constants";
 import { Stats } from "./game/Stats";
 import World from "./game/World";
 import Canvas from "./ui/Canvas";
@@ -8,6 +12,16 @@ import { Ui } from "./ui/Ui";
 import { View } from "./ui/View";
 import Sound from "./util/Sound";
 
+applyFunctionPrototypes();
+
+export interface IMainEvents {
+	update (): any;
+}
+
+@Events.Bus(EventBus.Main)
+export class Main extends EventHost(Events)<IMainEvents> { }
+const main = new Main();
+
 
 ////////////////////////////////////
 // Game
@@ -15,7 +29,6 @@ import Sound from "./util/Sound";
 
 export const stats = new Stats();
 export const world = new World(stats);
-export const view = new View();
 
 
 ////////////////////////////////////
@@ -28,11 +41,10 @@ export const particles = new Particles();
 world.setParticles(particles);
 
 
-export const canvas = new Canvas().setSize(TILE * TILES, TILE * TILES).appendTo(document.body);
+export const canvas = new Canvas().setSize(CANVAS, CANVAS).appendTo(document.body);
 
 function setCanvasSize () {
-	const realSize = TILES * TILE;
-	const size = Math.floor(Math.min(window.innerWidth, window.innerHeight) / realSize) * realSize;
+	const size = Math.floor(Math.min(window.innerWidth, window.innerHeight) / CANVAS) * CANVAS;
 	canvas.setDisplaySize(size, size);
 	canvas.invalidateOffset();
 }
@@ -42,14 +54,13 @@ setTimeout(setCanvasSize, 200);
 window.addEventListener("resize", setCanvasSize);
 
 
+export const mouse = new Mouse(canvas);
+
+export const view = new View(world, mouse);
+
 export const ui = new Ui(stats);
 
-
-export const mouse = new Mouse()
-	.setWorld(world)
-	.setView(view)
-	.setCanvas(canvas)
-	.setUi(ui);
+export const cursor = new CursorHandler();
 
 
 ////////////////////////////////////
@@ -63,7 +74,8 @@ function update () {
 	mouse.update();
 	world.update();
 	particles.update();
-	view.update(world, stats, mouse);
+	view.update(stats);
+	main.event.emit("update");
 }
 
 let lastFrame = 0;
