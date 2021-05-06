@@ -13,14 +13,8 @@ enum FontSprite {
 	Uppercase,
 	Lowercase,
 	Numbers,
-	Period,
-	Comma,
-	Exclamation,
-	Colon,
-	Parentheses,
-	Currency,
-	Plus,
-	Minus,
+	Symbols,
+	WideSymbols,
 }
 
 interface IFontSpriteDefinition {
@@ -44,7 +38,7 @@ function char (width?: number | string, ...chars: string[]) {
 	if (typeof width === "string")
 		chars.unshift(width), width = undefined;
 
-	const codes = chars.map(char => char.charCodeAt(0));
+	const codes = chars.flatMap(str => str.split("")).map(char => char.charCodeAt(0));
 	if (codes.length === 1)
 		return codes[0];
 
@@ -67,40 +61,55 @@ function getSpriteIndexOffset (def: FontSpriteDefinition, code: number) {
 }
 
 const fontSpriteDefinitions: Record<FontSprite, FontSpriteDefinition> = {
-	[FontSprite.Wide]: char(9, "M", "m", "W", "w"),
+	[FontSprite.Wide]: char(9, "MmWw"),
 	[FontSprite.Uppercase]: charRange("A", "Z"),
 	[FontSprite.Lowercase]: charRange("a", "z"),
 	[FontSprite.Numbers]: charRange("0", "9"),
-	[FontSprite.Parentheses]: charRange("(", ")"),
-	[FontSprite.Period]: char("."),
-	[FontSprite.Comma]: char(","),
-	[FontSprite.Exclamation]: char("!"),
-	[FontSprite.Colon]: char(":"),
-	[FontSprite.Currency]: char("$"),
-	[FontSprite.Plus]: char("+"),
-	[FontSprite.Minus]: char("-"),
+	[FontSprite.Symbols]: char(".,“”‘’\"'?!_*$()+-/:;<=>[\\]^`{|}"),
+	[FontSprite.WideSymbols]: char(8, "@#%&~"),
 };
 
 const characterWidthExceptions: Partial<Record<string, number>> = {
-	M: 9,
-	m: 9,
-	W: 8,
-	w: 8,
-	I: 5,
-	T: 5,
 	i: 3,
+	I: 5,
 	j: 5,
 	l: 4,
+	m: 9,
+	M: 9,
 	r: 5,
+	T: 5,
+	w: 8,
+	W: 8,
 	1: 5,
-	",": 3,
 	".": 3,
+	",": 3,
+	"‘": 3,
+	"’": 3,
+	"'": 3,
 	"!": 3,
-	":": 3,
 	"(": 4,
 	")": 4,
 	"+": 5,
 	"-": 5,
+	"/": 5,
+	":": 3,
+	";": 3,
+	"<": 5,
+	"=": 5,
+	">": 5,
+	"[": 4,
+	"\\": 5,
+	"]": 4,
+	"^": 4,
+	"`": 4,
+	"{": 5,
+	"|": 3,
+	"}": 5,
+	"@": 8,
+	"#": 8,
+	"%": 8,
+	"&": 7,
+	"~": 8,
 	"\n": 0,
 };
 
