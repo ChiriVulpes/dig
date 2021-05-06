@@ -7,10 +7,10 @@ export default class EphemeralElement extends FlowContainerElement {
 		this.setRefreshOn(EventBus.Main, "update", () => this.valueChanged("ephemeralPredicate", predicate()));
 	}
 
-	protected override flow () {
+	protected override reflow () {
 		if (!this.predicate())
 			return { lines: [], width: 0, height: 0 };
 
-		return super.flow();
+		return super.reflow();
 	}
 }

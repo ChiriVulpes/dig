@@ -30,16 +30,10 @@ export default abstract class Element<INFO extends IElementInfo = IElementInfo> 
 	private _pendingInfo?: INFO;
 	protected shouldReflow = false;
 	public get info () {
-		if (this._info === undefined || this.shouldReflow)
-			this.forceReflow();
-
 		return this._info ?? this._pendingInfo;
 	}
 
 	public get pendingInfo () {
-		if (this._info === undefined || this.shouldReflow)
-			this.forceReflow();
-
 		return this._pendingInfo;
 	}
 
@@ -127,7 +121,7 @@ export default abstract class Element<INFO extends IElementInfo = IElementInfo> 
 	private rendered?: Promise<void>;
 	public getImage () {
 		if (!this.generating) {
-			if (this.shouldReflow)
+			if (this.shouldReflow || !this.info)
 				this.forceReflow();
 
 			if (!this.image || this.shouldRerender)

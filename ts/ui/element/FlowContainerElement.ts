@@ -111,12 +111,13 @@ export default class FlowContainerElement extends ContainerElement<IFlowLayoutIn
 
 			const element = children[i] as Partial<Element>;
 			const isNewline = element === SYMBOL_NEWLINE;
-			if (!isNewline) {
+			const width = (element.pendingInfo ?? element.info)?.width ?? 0;
+			if (!isNewline && width) {
 				await element.waitForRendered?.();
 				element.draw?.(canvas, x, y);
 			}
 
-			x += element.info?.width ?? 0;
+			x += width;
 			if (line?.index === i) {
 				splitIndex++;
 				x = undefined;
