@@ -1,4 +1,4 @@
-import Colour from "util/Color";
+import Colour from "util/Colour";
 
 namespace Scheme {
 	export const COLOUR_FOREGROUND_PRIMARY = Colour.WHITE;

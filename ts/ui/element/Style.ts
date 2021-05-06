@@ -2,7 +2,7 @@ import { EventHost } from "@@wayward/excevent/Emitter";
 import Events from "Events";
 import Element from "ui/element/Element";
 import Scheme from "ui/element/Scheme";
-import Colour from "util/Color";
+import Colour from "util/Colour";
 import { IMargin, Margin } from "util/Geometry";
 
 export enum Align {

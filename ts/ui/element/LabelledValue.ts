@@ -1,6 +1,6 @@
 import { ResolveableChild } from "ui/element/ContainerElement";
 import FlowContainerElement from "ui/element/FlowContainerElement";
-import Colour from "util/Color";
+import Colour from "util/Colour";
 
 export default class LabelledValue extends FlowContainerElement {
 

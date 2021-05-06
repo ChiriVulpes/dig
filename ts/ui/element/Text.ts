@@ -1,7 +1,7 @@
 import Canvas from "ui/Canvas";
 import Element from "ui/element/Element";
 import Sprite from "ui/Sprite";
-import Colour from "util/Color";
+import Colour from "util/Colour";
 import Enums from "util/Enums";
 import { GetterOfOr } from "util/type";
 
