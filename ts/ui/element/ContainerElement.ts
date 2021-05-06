@@ -52,7 +52,6 @@ export default abstract class ContainerElement<INFO extends IElementInfo = IElem
 	protected override reflow () {
 		for (const child of this.pendingChildren ?? this.children)
 			(child as Partial<Element>).forceReflow?.();
-
 		return this.flow();
 	}
 
@@ -64,7 +63,7 @@ export default abstract class ContainerElement<INFO extends IElementInfo = IElem
 		return this;
 	}
 
-	public add (...elements: ResolveableChild[]) {
+	public append (...elements: ResolveableChild[]) {
 		this.deferredContainer.addInternal(...elements);
 		return this;
 	}

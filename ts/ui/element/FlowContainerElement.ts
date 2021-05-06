@@ -1,7 +1,7 @@
 import Canvas from "ui/Canvas";
 import ContainerElement, { SYMBOL_NEWLINE } from "ui/element/ContainerElement";
 import Element, { IElementInfo } from "ui/element/Element";
-import { Align } from "ui/element/Style";
+import { Align, StyleProperty } from "ui/element/Style";
 import { Size } from "util/Geometry";
 
 interface ILine {
@@ -9,23 +9,26 @@ interface ILine {
 	dimensions: Size;
 }
 
-export interface IFlowLayoutInformation extends IElementInfo {
+export interface IFlowContainerInfo extends IElementInfo {
 	width: number;
 	height: number;
 	lines: ILine[];
 }
 
-export default class FlowContainerElement extends ContainerElement<IFlowLayoutInformation> {
-
-	protected container?: Size;
-	public setContainedDimensions (...size: Size) {
-		this.container = size;
-		this.markNeedsReflow();
-		return this;
-	}
+export default class FlowContainerElement extends ContainerElement<IFlowContainerInfo> {
 
 	protected override flow () {
-		const [maxWidth, maxHeight] = this.container ?? [Infinity, Infinity];
+		const maxWidth = this.getStyle("maxWidth");
+		const maxHeight = this.getStyle("maxHeight");
+		let { top: paddingTop, right: paddingRight, bottom: paddingBottom, left: paddingLeft } = this.getStyle("padding");
+		paddingTop ??= 0;
+		paddingRight ??= 0;
+		paddingBottom ??= 0;
+		paddingLeft ??= 0;
+
+		const maxContentWidth = maxWidth - paddingLeft - paddingRight;
+		const maxContentHeight = maxHeight - paddingTop - paddingBottom;
+
 		const children = this.pendingChildren ?? this.children;
 
 		let width = 0;
@@ -37,9 +40,8 @@ export default class FlowContainerElement extends ContainerElement<IFlowLayoutIn
 		for (let i = 0; i < children.length; i++) {
 			const element = children[i] as Partial<Element>;
 
-			const info = element.pendingInfo ?? element.info;
-			const elementWidth = info?.width ?? 0;
-			const elementHeight = info?.height ?? 0;
+			const elementWidth = element.renderWidth ?? 0;
+			const elementHeight = element.renderHeight ?? 0;
 			const isNewline = element === SYMBOL_NEWLINE;
 
 			if (isNewline) {
@@ -51,7 +53,7 @@ export default class FlowContainerElement extends ContainerElement<IFlowLayoutIn
 				needsToAddSplit = false;
 			}
 
-			if (lineWidth + elementWidth > maxWidth || isNewline) {
+			if (lineWidth + elementWidth > maxContentWidth || isNewline) {
 				height += lineHeight;
 				width = Math.max(lineWidth, width);
 
@@ -67,7 +69,7 @@ export default class FlowContainerElement extends ContainerElement<IFlowLayoutIn
 			lineWidth += elementWidth;
 			lineHeight = Math.max(lineHeight, elementHeight);
 
-			if (elementWidth > maxWidth)
+			if (elementWidth > maxContentWidth)
 				console.warn("Element overflowing horizontally:", element);
 		}
 
@@ -75,17 +77,17 @@ export default class FlowContainerElement extends ContainerElement<IFlowLayoutIn
 		height += lineHeight;
 		lines.push({ index: Infinity, dimensions: [lineWidth, lineHeight] });
 
-		if (height > maxHeight)
+		if (height > maxContentHeight)
 			console.warn("Elements overflowing vertically:", ...children);
 
 		return {
 			lines,
-			width,
-			height,
+			width: Math.min(maxWidth, width + paddingLeft + paddingRight),
+			height: Math.min(maxHeight, height + paddingTop + paddingBottom),
 		};
 	}
 
-	protected override async render (canvas: Canvas, info: IFlowLayoutInformation) {
+	protected override async render (canvas: Canvas, info: IFlowContainerInfo) {
 		const children = this.pendingChildren ?? this.children;
 		const lines = info.lines;
 		let x: number | undefined;
@@ -111,7 +113,7 @@ export default class FlowContainerElement extends ContainerElement<IFlowLayoutIn
 
 			const element = children[i] as Partial<Element>;
 			const isNewline = element === SYMBOL_NEWLINE;
-			const width = (element.pendingInfo ?? element.info)?.width ?? 0;
+			const width = element.renderWidth ?? 0;
 			if (!isNewline && width) {
 				await element.waitForRendered?.();
 				element.draw?.(canvas, x, y);
@@ -123,6 +125,21 @@ export default class FlowContainerElement extends ContainerElement<IFlowLayoutIn
 				x = undefined;
 				y += lineHeight;
 			}
+		}
+	}
+
+	protected override onChangeStyle (property: StyleProperty) {
+		switch (property.name) {
+			case "align":
+				this.markNeedsRerender();
+				break;
+			case "maxWidth":
+			case "maxHeight":
+			case "padding":
+				this.markNeedsReflow();
+				break;
+			default:
+				super.onChangeStyle(property);
 		}
 	}
 }

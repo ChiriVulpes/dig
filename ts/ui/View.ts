@@ -1,7 +1,7 @@
 import { IEventApi } from "@@wayward/excevent/IExcevent";
 import Events, { EventBus } from "Events";
 import Tile from "game/Tile";
-import { GameState, TILE, TILES } from "../Constants";
+import { CANVAS, GameState, TILE, TILES } from "../Constants";
 import { Stats } from "../game/Stats";
 import World from "../game/World";
 import Canvas from "./Canvas";
@@ -27,7 +27,7 @@ export class View {
 	}
 
 	public getBottomVisibleRowY () {
-		return Math.ceil((this.y + TILES * TILE) / TILE);
+		return Math.ceil((this.y + CANVAS) / TILE);
 	}
 
 	private step = 0;

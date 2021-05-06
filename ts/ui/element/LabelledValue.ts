@@ -10,20 +10,20 @@ export default class LabelledValue extends FlowContainerElement {
 
 	public constructor () {
 		super();
-		this.add(this.label, this.contents);
+		this.append(this.label, this.contents);
 		this.setDeferredContainer(this.contents);
 	}
 
 	public initialiseLabel (initialiser: (container: FlowContainerElement) => any) {
 		this.label.empty();
 		initialiser(this.label);
-		this.label.add(": ");
+		this.label.append(": ");
 		return this;
 	}
 
 	public setLabel (...contents: ResolveableChild[]) {
 		this.label.empty()
-			.add(...contents, ": ");
+			.append(...contents, ": ");
 		return this;
 	}
 }

@@ -2,7 +2,8 @@ import { EventHost } from "@@wayward/excevent/Emitter";
 import { Class, EventBusOrHost, IEventApi } from "@@wayward/excevent/IExcevent";
 import Events, { EventsOf, IEventBuses } from "Events";
 import Canvas from "ui/Canvas";
-import Style, { IStyle, StyleProperty } from "ui/element/Style";
+import ContainerElement from "ui/element/ContainerElement";
+import Style, { INHERITED_STYLES, IStyle, StyleProperty } from "ui/element/Style";
 import Bound from "util/decorator/Bound";
 
 export interface IElementEvents {
@@ -33,8 +34,14 @@ export default abstract class Element<INFO extends IElementInfo = IElementInfo> 
 		return this._info ?? this._pendingInfo;
 	}
 
-	public get pendingInfo () {
-		return this._pendingInfo;
+	public get renderWidth () {
+		const info = this._pendingInfo ?? this._info;
+		return info?.width ?? 0;
+	}
+
+	public get renderHeight () {
+		const info = this._pendingInfo ?? this._info;
+		return info?.height ?? 0;
 	}
 
 	public get width () {
@@ -55,15 +62,24 @@ export default abstract class Element<INFO extends IElementInfo = IElementInfo> 
 		set.add(this);
 	}
 
+	public needsReflow () {
+		return this.shouldReflow;
+	}
+
+	public appendTo (element: ContainerElement) {
+		element.append(this);
+		return this;
+	}
+
 	private style?: Style;
 	public getStyle<P extends keyof IStyle> (property: P): IStyle[P] {
 		return this.style?.get(property)
-			?? this.parent?.getStyle(property)
+			?? (INHERITED_STYLES[property] ? this.parent?.getStyle(property) : undefined)
 			?? Style.DEFAULT[property];
 	}
 
-	public setStyle<P extends keyof IStyle> (property: P, value: IStyle[P] | "inherit") {
-		if (!this.style && value !== "inherit") {
+	public setStyle<P extends keyof IStyle> (property: P, value?: IStyle[P]) {
+		if (!this.style && value !== undefined) {
 			const style = this.style = new Style();
 			this.event.emit("changeStyle", style);
 			this.event.until(["changeStyle", "dispose"], subscriber => subscriber
@@ -71,7 +87,7 @@ export default abstract class Element<INFO extends IElementInfo = IElementInfo> 
 		}
 
 		if (this.style) {
-			if (value === "inherit")
+			if (value === undefined)
 				this.style.remove(property);
 			else
 				this.style.set(property, value);
@@ -84,9 +100,14 @@ export default abstract class Element<INFO extends IElementInfo = IElementInfo> 
 		switch (property.name) {
 			case "colour":
 			case "shadow":
-				return this.markNeedsRerender();
+				this.markNeedsRerender();
+				break;
 			case "scale":
-				return this.markNeedsReflow();
+				this.markNeedsReflow();
+				break;
+			case "margin":
+				// make parent element reflow
+				this.event.emit("needsReflow");
 		}
 	}
 
@@ -183,6 +204,16 @@ export default abstract class Element<INFO extends IElementInfo = IElementInfo> 
 			.subscribe(on, event, ((api: IEventApi<any, any>) => {
 				if (when?.() !== false)
 					this.forceRefresh();
+				api.disregard = true;
+			}) as any));
+		return this;
+	}
+
+	public setRenderOn<ON extends EventBusOrHost<IEventBuses>, EVENT extends keyof EventsOf<ON, IEventBuses>> (on: ON, event: EVENT, when?: () => boolean) {
+		this.event.until("dispose", subscriber => subscriber
+			.subscribe(on, event, ((api: IEventApi<any, any>) => {
+				if (when?.() !== false)
+					this.markNeedsRerender();
 				api.disregard = true;
 			}) as any));
 		return this;

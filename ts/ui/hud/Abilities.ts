@@ -16,21 +16,21 @@ export default class AbilitiesElement extends EphemeralElement {
 
 		this
 			.setStyle("align", Align.Right)
-			.add(new LabelledValue()
+			.append(new LabelledValue()
 				.setLabel("ABILITIES")
-				.add(new Text("Right Click").setStyle("colour", Scheme.COLOUR_INPUT)))
-			.add(SYMBOL_NEWLINE)
-			.add(new EphemeralElement(() => stats.discoveredAssays)
-				.add(new LabelledValue()
+				.append(new Text("Right Click").setStyle("colour", Scheme.COLOUR_INPUT)))
+			.append(SYMBOL_NEWLINE)
+			.append(new EphemeralElement(() => stats.discoveredAssays)
+				.append(new LabelledValue()
 					.setLabel("Assay Cost")
-					.add(new Text(() => `$${stats.assayCost}`)
+					.append(new Text(() => `$${stats.assayCost}`)
 						.setRefreshOn(EventBus.Main, "update", Watch(() => stats.assayCost)))))
-			.add(SYMBOL_NEWLINE)
-			.add(new EphemeralElement(() => stats.explosives !== NOT_DISCOVERED)
-				.add(new LabelledValue()
+			.append(SYMBOL_NEWLINE)
+			.append(new EphemeralElement(() => stats.explosives !== NOT_DISCOVERED)
+				.append(new LabelledValue()
 					.setLabel("Explosives")
-					.add(new Text("Have ").setStyle("colour", Scheme.COLOUR_FOREGROUND_TERTIARY))
-					.add(new Text(() => `${stats.explosives}`)
+					.append(new Text("Have ").setStyle("colour", Scheme.COLOUR_FOREGROUND_TERTIARY))
+					.append(new Text(() => `${stats.explosives}`)
 						.setRefreshOn(EventBus.Main, "update", Watch(() => stats.explosives)))));
 	}
 }

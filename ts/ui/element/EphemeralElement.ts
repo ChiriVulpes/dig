@@ -1,6 +1,6 @@
 import { EventBus } from "Events";
 import Canvas from "ui/Canvas";
-import FlowContainerElement, { IFlowLayoutInformation } from "ui/element/FlowContainerElement";
+import FlowContainerElement, { IFlowContainerInfo } from "ui/element/FlowContainerElement";
 import Watch from "util/Watch";
 
 export default class EphemeralElement extends FlowContainerElement {
@@ -16,7 +16,7 @@ export default class EphemeralElement extends FlowContainerElement {
 		return super.reflow();
 	}
 
-	protected override async render (canvas: Canvas, info: IFlowLayoutInformation) {
+	protected override async render (canvas: Canvas, info: IFlowContainerInfo) {
 		if (info.width === 0 || info.height === 0)
 			return;
 

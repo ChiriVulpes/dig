@@ -2,7 +2,7 @@ import { EventHost } from "@@wayward/excevent/Emitter";
 import Events, { EventBus } from "Events";
 import CursorHandler from "ui/Cursor";
 import applyFunctionPrototypes from "util/prototype/Function";
-import { TILE, TILES } from "./Constants";
+import { CANVAS } from "./Constants";
 import { Stats } from "./game/Stats";
 import World from "./game/World";
 import Canvas from "./ui/Canvas";
@@ -41,11 +41,10 @@ export const particles = new Particles();
 world.setParticles(particles);
 
 
-export const canvas = new Canvas().setSize(TILE * TILES, TILE * TILES).appendTo(document.body);
+export const canvas = new Canvas().setSize(CANVAS, CANVAS).appendTo(document.body);
 
 function setCanvasSize () {
-	const realSize = TILES * TILE;
-	const size = Math.floor(Math.min(window.innerWidth, window.innerHeight) / realSize) * realSize;
+	const size = Math.floor(Math.min(window.innerWidth, window.innerHeight) / CANVAS) * CANVAS;
 	canvas.setDisplaySize(size, size);
 	canvas.invalidateOffset();
 }

@@ -1,7 +1,9 @@
 import { EventHost } from "@@wayward/excevent/Emitter";
 import Events from "Events";
+import Element from "ui/element/Element";
 import Scheme from "ui/element/Scheme";
 import Colour from "util/Color";
+import { IMargin, Margin } from "util/Geometry";
 
 export enum Align {
 	Left,
@@ -9,7 +11,9 @@ export enum Align {
 	Right,
 }
 
-export type StyleProperty = { [PROPERTY in keyof IStyle]-?: { name: PROPERTY, value: IStyle[PROPERTY] } }[keyof IStyle];
+// no perfect types, stack overflow :(
+// export type StyleProperty = { [PROPERTY in keyof IStyle]-?: { name: PROPERTY, value: IStyle[PROPERTY] } }[keyof IStyle];
+export type StyleProperty = { name: keyof IStyle; value: IStyle[keyof IStyle] };
 
 export interface IStyleEvents {
 	change (property: StyleProperty): any;
@@ -20,7 +24,33 @@ export interface IStyle {
 	colour: Colour;
 	shadow: Colour;
 	align: Align;
+	maxWidth: number;
+	maxHeight: number;
+	margin: IMargin | ((self: Element, container: Element) => IMargin);
+	padding: IMargin;
 }
+
+export const INHERITED_STYLES: { [PROPERTY in keyof IStyle]-?: boolean } = {
+	scale: true,
+	colour: true,
+	shadow: true,
+	align: true,
+	maxWidth: false,
+	maxHeight: false,
+	margin: false,
+	padding: false,
+};
+
+const DEFAULT_STYLES: IStyle = {
+	align: Align.Left,
+	scale: 1,
+	colour: Scheme.COLOUR_FOREGROUND_PRIMARY,
+	shadow: Scheme.COLOUR_SHADOW,
+	maxWidth: Infinity,
+	maxHeight: Infinity,
+	margin: Margin.ZERO,
+	padding: Margin.ZERO,
+};
 
 export default class Style extends EventHost(Events)<IStyleEvents> {
 
@@ -31,12 +61,7 @@ export default class Style extends EventHost(Events)<IStyleEvents> {
 		}
 	}
 
-	public static readonly DEFAULT: IStyle = {
-		align: Align.Left,
-		scale: 1,
-		colour: Scheme.COLOUR_FOREGROUND_PRIMARY,
-		shadow: Scheme.COLOUR_SHADOW,
-	};
+	public static readonly DEFAULT = DEFAULT_STYLES;
 
 	public get<P extends keyof IStyle> (property: P) {
 		return (this as Partial<IStyle>)[property] as IStyle[P] | undefined;
