@@ -98,17 +98,17 @@ export default abstract class ContainerElement<INFO extends IElementInfo = IElem
 	protected onReflow () {
 		for (const child of this.pendingChildren ?? this.children) {
 			if (child instanceof Element) {
-				child.event
-					.subscribe("needsReflow", this.markNeedsReflow)
-					.subscribe("needsRender", this.markNeedsRerender);
+				child
+					.event.subscribe("needsReflow", this.markNeedsReflow)
+					.event.subscribe("needsRender", this.markNeedsRerender);
 
 				Promise.race([
 					this.event.waitFor("dispose"),
 					child.event.waitFor("dispose"),
 				])
-					.then(() => child.event
-						.unsubscribe("needsReflow", this.markNeedsReflow)
-						.unsubscribe("needsRender", this.markNeedsRerender));
+					.then(() => child
+						.event.unsubscribe("needsReflow", this.markNeedsReflow)
+						.event.unsubscribe("needsRender", this.markNeedsRerender));
 			}
 		}
 	}
