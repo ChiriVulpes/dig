@@ -36,8 +36,8 @@
 			fn = reqs;
 			reqs = name;
 			name = document.currentScript.getAttribute("src");
-			if (name.startsWith("/node_modules/"))
-				name = `@${name.slice("/node_modules/".length)}`;
+			if (name.startsWith("node_modules/"))
+				name = `@${name.slice("node_modules/".length)}`;
 			if (name.endsWith(".js"))
 				name = `${name.slice(0, -3)}`;
 		}
@@ -149,10 +149,10 @@
 	 */
 	async function importAdditionalModule (req) {
 		const script = document.createElement("script");
-		document.head.appendChild(script);
 		/** @type {Promise<void>} */
 		const promise = new Promise(resolve => script.addEventListener("load", () => resolve()));
-		script.src = req[0] === "@" ? `/node_modules/${req.slice(1)}.js` : `/js/${req}.js`;
+		script.src = req[0] === "@" ? `node_modules/${req.slice(1)}.js` : `js/${req}.js`;
+		document.head.appendChild(script);
 		return promise;
 	}
 
