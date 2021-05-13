@@ -26,11 +26,18 @@
 		<a id="music" class="playing" href="#" onclick="toggleMusic()" style="filter: grayscale()">🔊</a>
 		<script>
 			let music;
+
+			const playlist = ["dig", "dig2"].map(song => {
+				const audio = new Audio(`music/${song}.mp3`);
+				audio.addEventListener("ended", () => {
+					music = playlist[(playlist.indexOf(audio) + 1) % playlist.length];
+					music.play();
+				});
+				return audio;
+			});
+			
 			function toggleMusic() {
-				if (!music) {
-					music = new Audio('music/dig.mp3');
-					music.loop = true;
-				}
+				music ??= playlist[0];
 					
 				if (music.paused) {
 					music.play();
