@@ -91,7 +91,7 @@ function render () {
 	update();
 
 	canvas.clear();
-	view.render(world, canvas);
+	view.render(canvas);
 	particles.render(canvas, view);
 	ui.render(canvas);
 }

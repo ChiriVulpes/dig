@@ -4,7 +4,7 @@ import Events, { EventBus, EventsOf } from "Events";
 import { Cursor, IHasCustomCursor } from "ui/Cursor";
 import { IMouseEvents, ITarget, Mouse } from "ui/Mouse";
 import Strings from "util/Strings";
-import { GameState, SURFACE_TILES, TILE } from "../Constants";
+import { SURFACE_TILES, TILE } from "../Constants";
 import Canvas from "../ui/Canvas";
 import Sprite from "../ui/Sprite";
 import Direction, { Directions } from "../util/Direction";
@@ -175,8 +175,12 @@ export interface ITileContext {
 	y: number;
 }
 
+interface ITileEvents extends EventsOf<ITarget> {
+	needsRerender (): any;
+}
+
 @Events.Bus(EventBus.Tile)
-export default class Tile extends EventHost(Events)<EventsOf<ITarget>> implements ITarget, IHasCustomCursor {
+export default class Tile extends EventHost(Events)<ITileEvents> implements ITarget, IHasCustomCursor {
 
 	private hovering = false;
 	public context: ITileContext;
@@ -277,11 +281,11 @@ export default class Tile extends EventHost(Events)<EventsOf<ITarget>> implement
 	public static render (tile: Tile, type: TileType, canvas: Canvas, x: number, y: number, light?: number, mask?: Direction) {
 		const description = tiles[type];
 
-		if ((light ?? Infinity) <= 0 && (tile.context.world.stats.state === GameState.FellBehind || tile.revealed))
-			light = 1;
+		// if ((light ?? Infinity) <= 0 && (tile.context.world.stats.state === GameState.FellBehind || tile.revealed))
+		// 	light = 1;
 
-		if (description.invisible && description.background === undefined || (light !== undefined && light <= 0))
-			return;
+		// if (description.invisible && description.background === undefined || (light !== undefined && light <= 0))
+		// 	return;
 
 		if (!description.invisible) {
 			if (description.base !== undefined)
@@ -310,13 +314,28 @@ export default class Tile extends EventHost(Events)<EventsOf<ITarget>> implement
 
 		canvas.context.globalCompositeOperation = "source-over";
 
-		if (light !== undefined && light < LIGHT_MAX) {
-			canvas.context.fillStyle = `rgba(0,0,0,${1 - Math.min(1, Math.max(0, light / LIGHT_MAX))})`;
-			canvas.context.fillRect(x, y, TILE, TILE);
+		// if (light !== undefined && light < LIGHT_MAX) {
+		// 	canvas.context.fillStyle = `rgba(0,0,0,${1 - Math.min(1, Math.max(0, light / LIGHT_MAX))})`;
+		// 	canvas.context.fillRect(x, y, TILE, TILE);
+		// }
+	}
+
+	private shouldRerender = true;
+
+	public needsRerender () {
+		return this.shouldRerender;
+	}
+
+	public markNeedsRerender () {
+		if (!this.shouldRerender) {
+			this.shouldRerender = true;
+			this.event.emit("needsRerender");
 		}
+		return this;
 	}
 
 	public render (canvas: Canvas, x: number, y: number) {
+		this.shouldRerender = false;
 		Tile.render(this, this.type, canvas, x, y, this.getLight(), this.getMask());
 
 		if (this.breakAnim)
@@ -353,8 +372,10 @@ export default class Tile extends EventHost(Events)<EventsOf<ITarget>> implement
 				return;
 			}
 
-			if (DamageType.Mining >= getProperty(this.type, "breakable", DamageType.Invulnerable))
+			if (DamageType.Mining >= getProperty(this.type, "breakable", DamageType.Invulnerable)) {
 				this.breakAnim += amount;
+				this.markNeedsRerender();
+			}
 		}
 
 		if (effects) {
@@ -392,12 +413,12 @@ export default class Tile extends EventHost(Events)<EventsOf<ITarget>> implement
 	@EventHost.Handler(Tile, "mouseDown")
 	@EventHost.Handler(Tile, "mouseUp")
 	@EventHost.Handler(Tile, "mouseClick")
-	protected handleEvent (api: IEventApi<Tile>, mouse: Mouse) {
+	protected handleEvent (api: IEventApi<Tile, EventsOf<ITarget>>, mouse: Mouse) {
 		this.handleMouseEvent(api, mouse);
 	}
 
 	@EventHost.Handler(Tile, "mouseEnter")
-	protected onMouseEnter (api: IEventApi<Tile>, mouse: Mouse) {
+	protected onMouseEnter (api: IEventApi<Tile, EventsOf<ITarget>>, mouse: Mouse) {
 		if (this.handleMouseEvent(api, mouse) === false)
 			return;
 
@@ -405,7 +426,7 @@ export default class Tile extends EventHost(Events)<EventsOf<ITarget>> implement
 	}
 
 	@EventHost.Handler(Tile, "mouseLeave")
-	protected onMouseLeave (api: IEventApi<Tile>, mouse: Mouse) {
+	protected onMouseLeave (api: IEventApi<Tile, EventsOf<ITarget>>, mouse: Mouse) {
 		if (this.handleMouseEvent(api, mouse) === false)
 			return;
 
@@ -413,7 +434,7 @@ export default class Tile extends EventHost(Events)<EventsOf<ITarget>> implement
 	}
 
 	@EventHost.Handler(Tile, "mouseHold")
-	protected onMouseHold (api: IEventApi<Tile>, mouse: Mouse) {
+	protected onMouseHold (api: IEventApi<Tile, EventsOf<ITarget>>, mouse: Mouse) {
 		if (this.handleMouseEvent(api, mouse) === false)
 			return;
 
@@ -432,7 +453,7 @@ export default class Tile extends EventHost(Events)<EventsOf<ITarget>> implement
 	}
 
 	@EventHost.Handler(Tile, "mouseRightClick")
-	protected onMouseRightClick (api: IEventApi<Tile>, mouse: Mouse) {
+	protected onMouseRightClick (api: IEventApi<Tile, EventsOf<ITarget>>, mouse: Mouse) {
 		if (this.handleMouseEvent(api, mouse) === false)
 			return;
 
@@ -463,7 +484,7 @@ export default class Tile extends EventHost(Events)<EventsOf<ITarget>> implement
 		}
 	}
 
-	private handleMouseEvent (api: IEventApi<Tile>, mouse: Mouse) {
+	private handleMouseEvent (api: IEventApi<Tile, EventsOf<ITarget>>, mouse: Mouse) {
 		return tiles[this.type][`on${Strings.capitalise(api.event)}` as const]?.(this, mouse) as false | undefined;
 	}
 }

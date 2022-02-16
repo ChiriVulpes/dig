@@ -20,7 +20,7 @@ export default class Canvas {
 		return this;
 	}
 
-	public setSize (width: number, height: number) {
+	public setSize (width: number, height = width) {
 		this.element.width = width;
 		this.element.height = height;
 		return this;
@@ -28,7 +28,7 @@ export default class Canvas {
 
 	private displaySize?: { x: number, y: number };
 
-	public setDisplaySize (width: number, height: number) {
+	public setDisplaySize (width: number, height = width) {
 		this.element.style.setProperty("--width", `${width}`);
 		this.element.style.setProperty("--height", `${height}`);
 		this.displaySize = { x: width, y: height };

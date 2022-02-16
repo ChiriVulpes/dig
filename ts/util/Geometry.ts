@@ -1,4 +1,42 @@
 export type Point = readonly [x: number, y: number];
+export namespace Point {
+	export function serialize (...[x, y]: Point) {
+		let number = 0;
+		let i = 0;
+		while (x || y) {
+			let val;
+			if (i % 2) {
+				val = y;
+				y >>= 1;
+			} else {
+				val = x;
+				x >>= 1;
+			}
+			number |= (val & 1) << i++;
+		}
+
+		return number;
+	}
+
+	export function deserialize (n: number): Point {
+		let x = 0;
+		let y = 0;
+		let i = 0;
+		while (n) {
+			const val = n & 1;
+			n >>= 1;
+			if (i % 2) {
+				y |= val << (i >> 1);
+			} else {
+				x |= val << (i >> 1);
+			}
+			i++;
+		}
+
+		return [x, y];
+	}
+}
+
 export type Size = readonly [w: number, h: number];
 
 export type Rectangle = readonly [...Point, ...Size];

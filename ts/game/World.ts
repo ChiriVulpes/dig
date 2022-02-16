@@ -1,4 +1,5 @@
 import { EventHost } from "@@wayward/excevent/Emitter";
+import { IEventApi } from "@@wayward/excevent/IExcevent";
 import Events, { EventBus } from "Events";
 import { GameState, TILES } from "../Constants";
 import { Particles } from "../ui/Particles";
@@ -12,8 +13,10 @@ const BLANK_ROWS = TILES - 1;
 
 export interface IWorldEvents {
 	change (x: number, y: number, tile?: Tile, oldTile?: Tile): any;
+	rerender (x: number, y: number, tile?: Tile): any;
 }
 
+@Events.Subscribe
 @Events.Bus(EventBus.World)
 export default class World extends EventHost(Events)<IWorldEvents> {
 
@@ -168,6 +171,7 @@ export default class World extends EventHost(Events)<IWorldEvents> {
 		this.generateRow(TileType.Grass);
 		this.generateRow(TileType.Rock);
 		this.generateRow(TileType.Rock);
+		this.generateFor(40);
 	}
 
 	private generateCave (below: number) {
@@ -242,6 +246,11 @@ export default class World extends EventHost(Events)<IWorldEvents> {
 				return this.resolveGenerationOptions(decay!);
 
 		return options.type;
+	}
+
+	@Events.Handler(Tile, "needsRerender")
+	protected onTileNeedsRerender (api: IEventApi<Tile>) {
+		this.event.emit("rerender", api.host.context.x, api.host.context.y, api.host);
 	}
 }
 
